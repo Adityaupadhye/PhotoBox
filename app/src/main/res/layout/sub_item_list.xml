@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_margin="20dp"
+    android:layout_width="match_parent"
+    android:layout_height="110dp"
+    android:orientation="vertical"
+    android:background="@drawable/editext_box">
+
+    <TextView
+        android:id="@+id/mainListItem"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:drawableStart="@drawable/ic_baseline_perm_identity_24"
+        android:paddingStart="15dp"
+        android:drawablePadding="10dp"
+        android:textSize="22sp"
+        android:text="name"
+        android:gravity="center_vertical"
+        android:textColor="@android:color/black"
+        />
+
+    <TextView
+        android:id="@+id/subListItem"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:drawableStart="@drawable/ic_email_black_24dp"
+        android:drawablePadding="10dp"
+        android:gravity="center_vertical"
+        android:paddingStart="15dp"
+        android:text="email"
+        android:textColor="@android:color/holo_orange_dark"
+        android:textSize="18sp"
+
+        />
+
+</LinearLayout>

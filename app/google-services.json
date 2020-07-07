@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "519029852878",
+    "firebase_url": "https://younme-1604.firebaseio.com",
+    "project_id": "younme-1604",
+    "storage_bucket": "younme-1604.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:519029852878:android:5a21f85ff518257225de9f",
+        "android_client_info": {
+          "package_name": "com.AScode.photobox"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "519029852878-4t2sraacf0vlddqlcpp90abvis1t01hb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCxiAzrs2GNQRjrHili2jCjYCS_jULsB_g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "519029852878-4t2sraacf0vlddqlcpp90abvis1t01hb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

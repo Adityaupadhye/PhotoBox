@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/WelcomeScroll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/innerConstraint"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:background="@color/backgroundAll"
+        tools:context=".WelcomeActivity"
+        tools:menu="@menu/menu"
+        android:paddingBottom="20dp">
+
+        <Button
+            android:id="@+id/viewBtn"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="70dp"
+            android:background="@drawable/login_button"
+            android:onClick="viewer"
+            android:text="View Images"
+            android:textAllCaps="false"
+            android:textColor="@color/backgroundAll"
+            android:textSize="20sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/showLikedPerson" />
+
+        <Button
+            android:id="@+id/uploadImg"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="55dp"
+            android:background="@drawable/login_button"
+            android:onClick="selecter"
+            android:text="Upload Images"
+            android:textAllCaps="false"
+            android:textColor="@color/backgroundAll"
+            android:textSize="20sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/viewBtn" />
+
+        <TextView
+            android:id="@+id/showLikedPerson"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="@color/yellow"
+            android:gravity="center_vertical"
+            android:padding="10dp"
+            android:textColor="@android:color/black"
+            android:textSize="24sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:scrollHorizontally="true"
+            android:maxLines="1"
+            android:scrollbars="horizontal"/>
+
+        <TextView
+            android:id="@+id/linkTxt"
+            style="@android:style/TextAppearance.DeviceDefault.Medium"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="40dp"
+            android:layout_marginBottom="70dp"
+            android:gravity="center"
+            android:text="@string/link_a_person"
+
+            android:textColor="@color/btnBackground"
+            android:textSize="28sp"
+            app:layout_constraintBottom_toTopOf="@+id/searchName"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/uploadImg" />
+
+        <EditText
+            android:id="@+id/searchName"
+            android:layout_width="300dp"
+            android:layout_height="50dp"
+
+            android:layout_marginBottom="25dp"
+            android:background="@drawable/editext_box"
+            android:hint="Enter Name"
+            android:padding="10dp"
+            android:textColor="@android:color/black"
+            app:layout_constraintBottom_toTopOf="@+id/requestBtn"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.495"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <Button
+            android:id="@+id/requestBtn"
+            android:layout_width="180dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="25dp"
+            android:background="@drawable/login_button"
+            android:onClick="linkRequest"
+            android:text="Send Request"
+            android:textAllCaps="false"
+            android:textColor="@color/backgroundAll"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toTopOf="@+id/searchListView"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.497"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <ListView
+            android:id="@+id/searchListView"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:background="@drawable/custom_backgrnd"
+            tools:ignore="NestedScrolling"
+            android:scrollbars="vertical"
+            android:nestedScrollingEnabled="true"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
+

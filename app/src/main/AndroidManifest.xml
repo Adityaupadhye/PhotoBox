@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.AScode.photobox">
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher_icon2"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_icon2_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".GalleryActivity"
+            android:theme="@style/Images"/>
+        <activity
+            android:name=".ImageViewerActivity"
+            android:theme="@style/Images" />
+        <activity
+            android:name=".WelcomeActivity"
+            android:theme="@style/AppThemePicSelector" />
+        <activity
+            android:name=".SplashActivity"
+            android:theme="@style/AppTheme.Launcher">
+
+        </activity>
+        <activity
+            android:name=".signUp_Activity"
+            android:theme="@style/AppTheme1" />
+        <activity
+            android:name=".LoginActivity"
+            android:theme="@style/AppTheme1" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ImageSelectorActivity"
+            android:theme="@style/Images" />
+    </application>
+
+</manifest>
