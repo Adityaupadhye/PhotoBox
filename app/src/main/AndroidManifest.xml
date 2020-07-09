@@ -22,11 +22,6 @@
             android:name=".WelcomeActivity"
             android:theme="@style/AppThemePicSelector" />
         <activity
-            android:name=".SplashActivity"
-            android:theme="@style/AppTheme.Launcher">
-
-        </activity>
-        <activity
             android:name=".signUp_Activity"
             android:theme="@style/AppTheme1" />
         <activity

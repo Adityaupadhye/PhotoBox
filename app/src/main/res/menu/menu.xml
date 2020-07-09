@@ -15,5 +15,12 @@
         android:icon="@drawable/ic_outline_notifications_active_24"
         app:showAsAction="always"
         />
+    <item
+        android:id="@+id/notifyAccept"
+        android:title="Notfication"
+        android:icon="@drawable/ic_outline_notifications_24"
+        app:showAsAction="always"
+        />
+
 
 </menu>

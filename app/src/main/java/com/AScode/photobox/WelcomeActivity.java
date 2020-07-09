@@ -58,8 +58,8 @@ public class WelcomeActivity extends AppCompatActivity {
     ArrayList<String> nameArrayList=new ArrayList<>();
     ArrayAdapter<String> nameArrayAdapter;
     ListView searchListView;
-    HashMap<String,String> userMap=new HashMap<>();//map to store username and email---name=email
-    HashMap<String,String> email_uidMap=new HashMap<>();//map to store email and uid---email=UID
+    protected HashMap<String,String> userMap=new HashMap<>();//map to store username and email---name=email
+    protected HashMap<String,String> email_uidMap=new HashMap<>();//map to store email and uid---email=UID
     Menu myMenu;//to access menu in this activity
     DatabaseReference userRef;
     boolean checkMes=false;
@@ -67,7 +67,7 @@ public class WelcomeActivity extends AppCompatActivity {
     Button viewBtn,uploadImgBtn;
 
     //ChildEvent listener for firebase Database
-    ChildEventListener childEventListener=new ChildEventListener() {    //called in TextWatcher which os called in onCreate
+    ChildEventListener childEventListener=new ChildEventListener() {    //called in TextWatcher which is called in onCreate
         @Override
         public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
             //runs when new data Child is added into users
@@ -285,6 +285,15 @@ public class WelcomeActivity extends AppCompatActivity {
         request.setVisibility(View.GONE);
         searchListView.setVisibility(View.GONE);
 
+        //to check if my request is accepted
+        isRequestAccepted();
+
+        //to set text if linked
+        checkIfLinked();
+
+        String[] split=showLinkedPerson.getText().toString().split(":");
+        linkedName=split[1];
+
         //add onClickListener for link TextView to make request section visible
         linkText.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -306,6 +315,10 @@ public class WelcomeActivity extends AppCompatActivity {
         //to check if I got any request
         System.out.println(checkRequest());
 
+        //to fill the email_uidMap
+        userRef.addChildEventListener(childEventListener);
+
+
         //to start animation afer 1 sec
         new Handler().postDelayed(new Runnable() {
             @Override
@@ -317,6 +330,7 @@ public class WelcomeActivity extends AppCompatActivity {
                 uploadImgBtn.animate().translationX(0).setDuration(1500);
             }
         },2000);
+
     }
 
     @Override
@@ -326,6 +340,7 @@ public class WelcomeActivity extends AppCompatActivity {
 
         //hide notification icon
         menu.findItem(R.id.notify).setVisible(false);
+        menu.findItem(R.id.notifyAccept).setVisible(false);
         myMenu=menu;
         return super.onCreateOptionsMenu(menu);
     }
@@ -348,6 +363,11 @@ public class WelcomeActivity extends AppCompatActivity {
             }
             case R.id.notify:{
                 linkInfo(WelcomeActivity.this);
+                return true;
+            }
+            case R.id.notifyAccept:{
+                Toast.makeText(WelcomeActivity.this,"Link Request Accepted by ",Toast.LENGTH_SHORT).show();
+                return true;
             }
             default: return super.onOptionsItemSelected(item);
         }
@@ -361,44 +381,32 @@ public class WelcomeActivity extends AppCompatActivity {
 
     //upload button action
     public void selecter(View view){
+        imgSelecter.putExtra("userMap",userMap);
+        imgSelecter.putExtra("emailUIDMap",email_uidMap);
         startActivity(imgSelecter);
         overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
     }
 
-    //when request button is clicked
-    public void linkRequest(View view){
+    //when request button is clicked---sender
+    public void linkRequest(View view){     //to send request to selected person
         String getNameFromSearch=searchNameEditText.getText().toString();//get text from searchEditText
 
+        //to check if i am not sending myslef a request AND nameArrayList contains the selectedName
         if(!Objects.equals(userMap.get(getNameFromSearch), user.getEmail()) && nameArrayList.contains(getNameFromSearch)){
             //add a message to requested user's DB message="request from ___"
-            userRef.addChildEventListener(new ChildEventListener() {
-                @Override
-                public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
-                    //creating a map for this will delete the existing data and override that with this info
-                    userRef.child(Objects.requireNonNull(email_uidMap.get(selectedEmail)))
-                            .child("message").setValue("Link Request from: "+myName);//add a messgage to the reciever
+            DatabaseReference toLinkPerson=userRef.child(Objects.requireNonNull(email_uidMap.get(selectedEmail)));
+            //creating a map for this will delete the existing data and override that with this info
 
-                    userRef.child(Objects.requireNonNull(email_uidMap.get(selectedEmail)))
-                            .child("RequestFrom").setValue(myName);//add from whom the request is(name)
+            toLinkPerson.child("message").setValue("Link Request from: "+myName);//add a messgage to the reciever
+            toLinkPerson.child("RequestFrom").setValue(myName);//add from whom the request is(name)
+            toLinkPerson.child("RequestFromEmail").setValue(userMap.get(myName));//add from whom the request is(email)
 
-                    userRef.child(Objects.requireNonNull(email_uidMap.get(selectedEmail)))
-                            .child("RequestFromEmail").setValue(userMap.get(myName));//add from whom the request is(email)
+            //to check
+            System.out.println("message sent to: "+userMap.get(selectedName));
 
-
-                    System.out.println("message sent to: "+userMap.get(selectedName));
-                }
-
-                @Override
-                public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) { }
-                @Override
-                public void onChildRemoved(@NonNull DataSnapshot snapshot) { }
-                @Override
-                public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) { }
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) { }
-
-            });
+            //also in my DB write that i have sent a linkRequest to this person
+            userRef.child(user.getUid()).child("Link Request sent to").setValue(selectedEmail);
 
             //show a dialog giving message "request sent"
             AlertDialog alertDialog=new AlertDialog.Builder(WelcomeActivity.this)
@@ -411,6 +419,9 @@ public class WelcomeActivity extends AppCompatActivity {
 
             searchListView.setAdapter(null);
             searchNameEditText.setText(null);
+            searchListView.setVisibility(View.GONE);
+            searchNameEditText.setVisibility(View.GONE);
+            request.setVisibility(View.GONE);
 
         }else{
             Toast.makeText(WelcomeActivity.this,"Cant send request to yourself",Toast.LENGTH_SHORT).show();
@@ -418,7 +429,7 @@ public class WelcomeActivity extends AppCompatActivity {
 
     }
 
-    //check if message is present in reciever's DB
+    //check if message is present in reciever's DB---receiver
     private boolean checkRequest(){
 
         System.out.println("before listener="+checkMes);//to check
@@ -456,10 +467,15 @@ public class WelcomeActivity extends AppCompatActivity {
                 .setPositiveButton("ACCEPT", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
+
+                        FirebaseDatabase.getInstance().getReference().child("linkedUsers").child(myName+"AND"+fromName).setValue("linked");//add a new DB linkedUsers with myNameANDLinkedName
+                        userRef.child(user.getUid()).child("linkedTo").setValue(fromName);//add to my DB that i am linked to fromName
+                        userRef.child(Objects.requireNonNull(email_uidMap.get(fromEmail))).child("linkedTo").setValue(myName);//also write in fromName's DB that he/she is linked to me
+                        System.out.println("added to DB");//to check if it worked
+
                         linkedName=fromName;
                         showLinkedPerson.setText("You are Linked to: "+linkedName);
-                        FirebaseDatabase.getInstance().getReference().child("linkedUsers").child(user.getEmail()+"_"+selectedEmail);//add a new DB linkedUsers
-                        userRef.child(user.getUid()).child("linkedTo").setValue(linkedName);
+
                     }
                 })
                 .setNegativeButton("CANCEL",null)
@@ -467,6 +483,72 @@ public class WelcomeActivity extends AppCompatActivity {
                 .setCancelable(false)
                 .show();
         linkInfoDialog.setCanceledOnTouchOutside(false);
+    }
+
+    //to find is my request is accepted---this method is for sender
+    private void isRequestAccepted(){
+
+        //To check if i have sent any request AND i am linked to that person
+        //link request sent is recorded while sending request
+        //when receiver accepts the request a linked to key is set up in both DB
+        userRef.child(user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                //create a hashmap by taking value from snapshot
+
+                @SuppressWarnings("unchecked")
+                HashMap<String,String> requestAcceptMap=(HashMap<String, String>) snapshot.getValue();
+                System.out.println("in request accepted\t"+snapshot.getValue());
+
+                if(requestAcceptMap.get("linkedTo") != null && requestAcceptMap.get("Link Request sent to") != null && linkedName.isEmpty()){
+                    //yes i have sent a request AND my request is accepted
+                    System.out.println("My request is accepted and i am linked to"+requestAcceptMap.get("linkedTo"));
+                    myMenu.findItem(R.id.notifyAccept).setVisible(true);//show menu item of notification
+                    showLinkedPerson.setText("You are Linked to: "+requestAcceptMap.get("linkedTo"));
+
+
+                }
+
+                System.out.println("check if request is sent by me=="+snapshot.getKey().equals("Link Request sent to"));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) { }
+
+        });
+
+    }
+
+    //to check if my DB has "linkedTo" key
+    private void checkIfLinked(){
+        //display linked to in upper text
+        userRef.child(user.getUid()).addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                if(Objects.equals(snapshot.getKey(), "linkedTo")){
+                    String displayLinkedName=snapshot.getValue().toString();
+                    System.out.println("in checkIfLinked="+displayLinkedName);
+                    showLinkedPerson.setText("You are Linked to: "+displayLinkedName);
+                }
+
+            }
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+            }
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 
     @Override
@@ -479,7 +561,7 @@ public class WelcomeActivity extends AppCompatActivity {
             public void run() {
                 //to check if I got any request
                 //run this after 5sec so that firebase database gets loaded in around 4sec
-                if(checkMes){
+                if(checkMes && linkedName.isEmpty()){
                     System.out.println("checkRequest---message is present");
                     myMenu.findItem(R.id.notify).setVisible(true);
                 }
@@ -510,7 +592,6 @@ public class WelcomeActivity extends AppCompatActivity {
 
             }
         });
-
     }
 
     @Override

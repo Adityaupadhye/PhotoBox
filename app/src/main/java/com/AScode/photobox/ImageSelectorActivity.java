@@ -36,6 +36,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
@@ -48,6 +49,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -73,6 +75,8 @@ public class ImageSelectorActivity extends AppCompatActivity {
    Set<String> stringSet,retrievedStringSet;//for storing in sharedpref
    protected String downloadURL;
    String imageName;
+   private DatabaseReference linkedUsersRef,linkPersonDBRef;
+   private HashMap<String,String> userMapISA,email_UIDMapISA;//to get hashmaps from WelActivity i have used intent Extras
 
     //choose an image from gallery
     public void getImage(View view){
@@ -211,9 +215,19 @@ public class ImageSelectorActivity extends AppCompatActivity {
         snackbarLayout.setMinimumHeight(150);
         snackbar.show();
 
+        //init WelAc
+        WelcomeActivity welcomeActivity=new WelcomeActivity();
+        //initial both maps and give value from WelAc
+        userMapISA=(HashMap<String, String>) getIntent().getSerializableExtra("userMap");
+        email_UIDMapISA=(HashMap<String, String>) getIntent().getSerializableExtra("emailUIDMap");
+        System.out.println(userMapISA);
+        System.out.println(email_UIDMapISA);
 
         //initialize storage
         storage=FirebaseStorage.getInstance();
+        //initializing DB Ref to linkedUsers
+        linkedUsersRef=FirebaseDatabase.getInstance().getReference().child("linkedUsers");
+
 
         //initialize imageView
         imageView=findViewById(R.id.imageView);
