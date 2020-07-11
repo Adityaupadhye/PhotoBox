@@ -293,12 +293,13 @@ public class WelcomeActivity extends AppCompatActivity {
 
         String[] split=showLinkedPerson.getText().toString().split(":");
         linkedName=split[1];
+        System.out.println("linkedName is "+linkedName+"length of linkedName="+linkedName.length());
 
         //add onClickListener for link TextView to make request section visible
         linkText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(linkedName.isEmpty()){
+                if(linkedName.equals(" ")){
                     searchNameEditText.setVisibility(View.VISIBLE);
                     request.setVisibility(View.VISIBLE);
                     searchListView.setVisibility(View.VISIBLE);
@@ -561,7 +562,7 @@ public class WelcomeActivity extends AppCompatActivity {
             public void run() {
                 //to check if I got any request
                 //run this after 5sec so that firebase database gets loaded in around 4sec
-                if(checkMes && linkedName.isEmpty()){
+                if(checkMes && linkedName.equals(" ")){
                     System.out.println("checkRequest---message is present");
                     myMenu.findItem(R.id.notify).setVisible(true);
                 }

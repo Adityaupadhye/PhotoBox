@@ -36,6 +36,9 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
@@ -77,6 +80,40 @@ public class ImageSelectorActivity extends AppCompatActivity {
    String imageName;
    private DatabaseReference linkedUsersRef,linkPersonDBRef;
    private HashMap<String,String> userMapISA,email_UIDMapISA;//to get hashmaps from WelActivity i have used intent Extras
+
+    ChildEventListener subfolderListener=new ChildEventListener() {
+        @Override
+        public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+            System.out.println(snapshot.getKey());
+            String[] split=snapshot.getKey().split("AND");
+            if(split[0].equals(myName) || split[1].equals(myName)){
+                System.out.println("yesss");
+                //linkedUsersRef.child(snapshot.getKey()).child("subfolders").push().setValue("sub1");
+                System.out.println(snapshot.child("subfolders").getKey());
+
+            }
+
+            System.out.println(split[0]+"\n"+split[1]);
+
+        }
+
+        @Override
+        public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+        }
+        @Override
+        public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+        }
+        @Override
+        public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+        }
+        @Override
+        public void onCancelled(@NonNull DatabaseError error) {
+
+        }
+    };
 
     //choose an image from gallery
     public void getImage(View view){
@@ -350,6 +387,9 @@ public class ImageSelectorActivity extends AppCompatActivity {
                 Toast.makeText(ImageSelectorActivity.this,"No Item Is selected",Toast.LENGTH_SHORT).show();
             }
         });
+
+        //set subFolder from DB
+        linkedUsersRef.addChildEventListener(subfolderListener);
 
     }
 
