@@ -69,26 +69,58 @@ public class ImageSelectorActivity extends AppCompatActivity {
    FirebaseUser user;
    String myName;
    String date,time;
-   String subfolderName=null,selectedItem_fromDropdown;
+   String subfolderName=null,selectedItem_fromDropdown,linkedName;
    ProgressDialog progressDialog;
    private Handler handler=new Handler();
    private Spinner dropdown;
    protected List<String> stringList=new ArrayList<>();//create a list to add it into sharedPref and adapter of dropdownList
-   SharedPreferences sharedPreferences;
-   Set<String> stringSet,retrievedStringSet;//for storing in sharedpref
    protected String downloadURL;
    String imageName;
    private DatabaseReference linkedUsersRef,linkPersonDBRef;
    private HashMap<String,String> userMapISA,email_UIDMapISA;//to get hashmaps from WelActivity i have used intent Extras
 
-    ChildEventListener subfolderListener=new ChildEventListener() {
+    ChildEventListener getSubfolderListener=new ChildEventListener() {
+        @Override
+        public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+            if(!stringList.contains(snapshot.getValue().toString())){
+                stringList.add(snapshot.getValue().toString());
+                System.out.println("string list updated in DB="+stringList);
+            }
+
+        }
+
+        @Override
+        public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+        }
+        @Override
+        public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+        }
+        @Override
+        public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+        }
+        @Override
+        public void onCancelled(@NonNull DatabaseError error) {
+
+        }
+    };
+
+    ChildEventListener subfolderListener=new ChildEventListener() { //to get to the point of subfolders and write sunfolders
         @Override
         public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
             System.out.println(snapshot.getKey());
             String[] split=snapshot.getKey().split("AND");
             if(split[0].equals(myName) || split[1].equals(myName)){
                 System.out.println("yesss");
-                //linkedUsersRef.child(snapshot.getKey()).child("subfolders").push().setValue("sub1");
+
+                if(subfolderName!=null)        //as this childEvent is called in oncreate also write to DB only when subFolderName is not null
+                    linkedUsersRef.child(snapshot.getKey()).child("subfolders").push().setValue(subfolderName);
+
+                linkedName=snapshot.getKey();
+                System.out.println("linkedName is "+linkedName);
+
                 System.out.println(snapshot.child("subfolders").getKey());
 
             }
@@ -123,7 +155,6 @@ public class ImageSelectorActivity extends AppCompatActivity {
         }else{
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},IMG_FOUND);
         }
-
     }
 
     //upload image to firebase
@@ -265,7 +296,6 @@ public class ImageSelectorActivity extends AppCompatActivity {
         //initializing DB Ref to linkedUsers
         linkedUsersRef=FirebaseDatabase.getInstance().getReference().child("linkedUsers");
 
-
         //initialize imageView
         imageView=findViewById(R.id.imageView);
 
@@ -326,7 +356,6 @@ public class ImageSelectorActivity extends AppCompatActivity {
             }
         });
 
-
         //rotate image when imageview clicked
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -353,18 +382,18 @@ public class ImageSelectorActivity extends AppCompatActivity {
             }
         });
 
-        //call sharedpref to initialize
-        sharedPreferences=ImageSelectorActivity.this.getSharedPreferences("com.AScode.photobox", Context.MODE_PRIVATE);
-        //CharSequence set to save in sharedPref
-        stringSet = new HashSet<>(stringList);
-        //get back the string set saved in sharedPref and add it to the arrayList of strings
-        retrievedStringSet=sharedPreferences.getStringSet("SubFolderList",null);    //null is for the default value of stringSet
-        System.out.println("retrievedStringSet in onCreate---"+retrievedStringSet);
-        if(retrievedStringSet!=null){
-            stringList.addAll(retrievedStringSet);
-            Collections.reverse(stringList);
-            System.out.println("stringList in OnCreate---"+stringList);
-        }
+        //set subFolder from DB
+        linkedUsersRef.addChildEventListener(subfolderListener);
+
+        //to run this code after childevent listener is executed to avoid the linkedName to be null
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                //to access all subFolders
+                linkedUsersRef.child(linkedName).child("subfolders").addChildEventListener(getSubfolderListener);
+            }
+        },3000);
+
 
         if(stringList.isEmpty())
             stringList.add("Select an Item");
@@ -388,9 +417,6 @@ public class ImageSelectorActivity extends AppCompatActivity {
             }
         });
 
-        //set subFolder from DB
-        linkedUsersRef.addChildEventListener(subfolderListener);
-
     }
 
     //method for setting subFolderList and sharedPref
@@ -400,10 +426,9 @@ public class ImageSelectorActivity extends AppCompatActivity {
         System.out.println("inside setSubfolderName---" + subfolderName);
         System.out.println("updated list= " + stringList);
 
-        //add the stringSet into sharedPref
-        stringSet.addAll(stringList);
-        sharedPreferences.edit().putStringSet("SubFolderList",stringSet).apply();
-        System.out.println("stored Set---"+stringSet);
+        //add subfolder to DB of linkedUsers
+        linkedUsersRef.addChildEventListener(subfolderListener);
+        System.out.println("(Inside setSubFolder)written to DB="+subfolderName);
     }
 
     //for creating subFolder
