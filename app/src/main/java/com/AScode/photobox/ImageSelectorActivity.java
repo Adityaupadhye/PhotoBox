@@ -76,7 +76,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
    protected List<String> stringList=new ArrayList<>();//create a list to add it into sharedPref and adapter of dropdownList
    protected String downloadURL;
    String imageName;
-   private DatabaseReference linkedUsersRef,linkPersonDBRef;
+   private DatabaseReference linkedUsersRef;
    private HashMap<String,String> userMapISA,email_UIDMapISA;//to get hashmaps from WelActivity i have used intent Extras
 
     ChildEventListener getSubfolderListener=new ChildEventListener() {
@@ -86,9 +86,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
                 stringList.add(snapshot.getValue().toString());
                 System.out.println("string list updated in DB="+stringList);
             }
-
         }
-
         @Override
         public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
@@ -112,6 +110,8 @@ public class ImageSelectorActivity extends AppCompatActivity {
         public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
             System.out.println(snapshot.getKey());
             String[] split=snapshot.getKey().split("AND");
+            //find if entering the correct DB by splitting snapKey with "AND" and checking if it contains myName
+
             if(split[0].equals(myName) || split[1].equals(myName)){
                 System.out.println("yesss");
 
@@ -157,7 +157,8 @@ public class ImageSelectorActivity extends AppCompatActivity {
         }
     }
 
-    //upload image to firebase
+    //upload image to firebase(END)
+
     public void uploadImage(View view){
 
         imageName="IMG_"+date+"_"+time;
@@ -219,8 +220,9 @@ public class ImageSelectorActivity extends AppCompatActivity {
                             downloadURL=uri.toString();
                             System.out.println("downloadUrl="+downloadURL);
 
-                            //store url in database
-                            FirebaseDatabase.getInstance().getReference().child("urls").child("url1").setValue(downloadURL);
+                            //store snap names with download url
+                            linkedUsersRef.child(linkedName).child("snaps").child(imageName).setValue(downloadURL);
+
                         }
                     }).addOnFailureListener(new OnFailureListener() {
                         @Override
@@ -229,13 +231,14 @@ public class ImageSelectorActivity extends AppCompatActivity {
                         }
                     });
 
-                    //run this code after 1sec
-                    //dismiss dialog after 1 sec
+                    /*run this code after 1sec
+                    dismiss dialog after 1 sec*/
                     handler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
                             Toast.makeText(getApplicationContext(),"Uploaded Successfully",Toast.LENGTH_LONG).show();
                             hideProgressDialog();
+                            imageView.setImageBitmap(null);
                         }
                     },1000);
 
