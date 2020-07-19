@@ -15,17 +15,55 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
-import com.google.firebase.database.ChildEventListener
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.*
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.concurrent.schedule
 
 class GalleryActivity : AppCompatActivity() {
 
-    var imgView: ImageView? = null
+    lateinit var imgView: ImageView
     private var progressDialog: ProgressDialog? = null
     private var URL: String? = null
     private var imgViewer: Intent? = null
+    private lateinit var linkedUsersRef:DatabaseReference
+    private var firebaseUser =FirebaseAuth.getInstance().currentUser
+    private var myName: String?=firebaseUser?.displayName
+    var linkedName:String?=null
+    var snapList=ArrayList<String>()
+    var urls=ArrayList<String>()
+
+    fun getLinkedName(){
+        //get linkedName
+        linkedUsersRef.addChildEventListener(object: ChildEventListener{
+            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                val split=snapshot.key?.split("AND")
+
+                if(split?.get(0).equals(myName) || split?.get(1).equals(myName)){
+                    linkedName=snapshot.key
+                }
+            }
+            override fun onCancelled(error: DatabaseError) {}
+            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
+            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
+            override fun onChildRemoved(snapshot: DataSnapshot) {}
+        })
+    }
+
+    fun getURL(){
+        linkedUsersRef.child(linkedName!!).child("snaps").addChildEventListener(object :ChildEventListener{
+            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                snapList.add(snapshot.key!!)
+                urls.add(snapshot.value.toString())
+                println("snap=$snapList and url=$urls")
+            }
+            override fun onCancelled(error: DatabaseError) {}
+            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
+            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
+            override fun onChildRemoved(snapshot: DataSnapshot) {}
+        })
+    }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,21 +79,27 @@ class GalleryActivity : AppCompatActivity() {
         //progressdialog
         progressDialog = ProgressDialog(this)
 
-        //get url from DB
-        FirebaseDatabase.getInstance().reference.child("urls").addChildEventListener(object : ChildEventListener {
-            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                URL = snapshot.value.toString()
-                println(URL)
-            }
+        //DB refs
+        linkedUsersRef =FirebaseDatabase.getInstance().reference.child("linkedUsers")
 
-            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
-            override fun onChildRemoved(snapshot: DataSnapshot) {}
-            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
-            override fun onCancelled(error: DatabaseError) {}
-        })
+        //to get linkedName
+        getLinkedName()
+
+        //get url from DB
+        println("myName is $myName \t current firebaseUser is $firebaseUser")
+        Timer().schedule(3000){
+            getURL()
+        }
 
         setProgressDialog(1) //start loading
-        Handler().postDelayed({ loadImage() }, 4000)
+        Handler().postDelayed({
+            if(!URL.equals(null))
+                loadImage()
+            else {
+                setProgressDialog(0)
+                Toast.makeText(this,"URL not found",Toast.LENGTH_SHORT).show()
+            }
+        }, 4000)
 
         //toolbar
         val toolbar = findViewById<Toolbar>(R.id.galleryToolbar)
@@ -64,6 +108,7 @@ class GalleryActivity : AppCompatActivity() {
             startActivity(imgViewer)
             finish()
         }
+
     }
 
     private fun setProgressDialog(code: Int) {
@@ -93,7 +138,16 @@ class GalleryActivity : AppCompatActivity() {
                         return false
                     }
                 })
-                .into(imgView!!)
-        imgView!!.setBackgroundColor(Color.TRANSPARENT)
+                .into(imgView)
+        imgView.setBackgroundColor(Color.TRANSPARENT)
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        Timer().schedule(3000){
+            println("delayyy")
+            println("all snaps=$snapList \n urls=$urls")
+        }
     }
 }
