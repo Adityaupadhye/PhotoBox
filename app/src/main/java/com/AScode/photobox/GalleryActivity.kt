@@ -35,7 +35,7 @@ class GalleryActivity : AppCompatActivity() {
     var snapList=ArrayList<String>()
     var urls=ArrayList<String>()
     private lateinit var loadButton:Button
-    var numOfPics=-1
+    private var numOfPics=-1
 
 
     fun getLinkedName(){

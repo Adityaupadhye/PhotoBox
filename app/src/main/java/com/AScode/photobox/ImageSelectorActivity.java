@@ -70,6 +70,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
    String imageName;
    private DatabaseReference linkedUsersRef;
    private HashMap<String,String> userMapISA,email_UIDMapISA;//to get hashmaps from WelActivity i have used intent Extras
+    private final static String select="Select an Item";
 
     ChildEventListener getSubfolderListener=new ChildEventListener() {
         @Override
@@ -168,7 +169,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
 
             //create a subfolder String for final upload in it
             String uploadSubFolder;
-            if(selectedItem_fromDropdown == null || selectedItem_fromDropdown.equals("Select an Item")){
+            if(selectedItem_fromDropdown == null || selectedItem_fromDropdown.equals(select)){
                 ref=storage.getReference().child(linkedName.trim()).child(imageName);
                 uploadSubFolder="Nothing";
                 uploadTask=ref.putBytes(data);
@@ -211,7 +212,13 @@ public class ImageSelectorActivity extends AppCompatActivity {
                             System.out.println("downloadUrl="+downloadURL);
 
                             //store snap names with download url
-                            linkedUsersRef.child(linkedName).child("snaps").child(imageName).setValue(downloadURL);
+                            if(selectedItem_fromDropdown.equals(select)){
+                                linkedUsersRef.child(linkedName).child("snaps").child(imageName).setValue(downloadURL);
+                            }else{
+                                linkedUsersRef.child(linkedName).child("snaps")
+                                        .child(selectedItem_fromDropdown.trim())
+                                        .child(imageName).setValue(downloadURL);
+                            }
 
                         }
                     }).addOnFailureListener(new OnFailureListener() {
@@ -376,7 +383,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
         });
 
         //set subFolder from DB
-        linkedUsersRef.addChildEventListener(subfolderListener);
+            linkedUsersRef.addChildEventListener(subfolderListener);
 
         //to run this code after childevent listener is executed to avoid the linkedName to be null
         new Handler().postDelayed(new Runnable() {
@@ -409,7 +416,6 @@ public class ImageSelectorActivity extends AppCompatActivity {
                 Toast.makeText(ImageSelectorActivity.this,"No Item Is selected",Toast.LENGTH_SHORT).show();
             }
         });
-
     }
 
     //method for setting subFolderList and sharedPref
