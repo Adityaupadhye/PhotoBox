@@ -6,6 +6,8 @@ import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
+import android.view.View
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -25,7 +27,6 @@ class GalleryActivity : AppCompatActivity() {
 
     lateinit var imgView: ImageView
     private var progressDialog: ProgressDialog? = null
-    private var URL: String? = null
     private var imgViewer: Intent? = null
     private lateinit var linkedUsersRef:DatabaseReference
     private var firebaseUser =FirebaseAuth.getInstance().currentUser
@@ -33,6 +34,9 @@ class GalleryActivity : AppCompatActivity() {
     var linkedName:String?=null
     var snapList=ArrayList<String>()
     var urls=ArrayList<String>()
+    private lateinit var loadButton:Button
+    var numOfPics=-1
+
 
     fun getLinkedName(){
         //get linkedName
@@ -65,13 +69,13 @@ class GalleryActivity : AppCompatActivity() {
         })
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_gallery)
 
         //all views
         imgView = findViewById(R.id.loadImg)
+        loadButton=findViewById(R.id.loadButton)
 
         //intents
         imgViewer = Intent(this@GalleryActivity, ImageViewerActivity::class.java)
@@ -91,16 +95,6 @@ class GalleryActivity : AppCompatActivity() {
             getURL()
         }
 
-        setProgressDialog(1) //start loading
-        Handler().postDelayed({
-            if(!URL.equals(null))
-                loadImage()
-            else {
-                setProgressDialog(0)
-                Toast.makeText(this,"URL not found",Toast.LENGTH_SHORT).show()
-            }
-        }, 4000)
-
         //toolbar
         val toolbar = findViewById<Toolbar>(R.id.galleryToolbar)
         setSupportActionBar(toolbar)
@@ -109,6 +103,9 @@ class GalleryActivity : AppCompatActivity() {
             finish()
         }
 
+        //add animation to button to show after 3sec
+        loadButton.alpha=0f
+        loadButton.animate().alpha(1f).setDuration(3000)
     }
 
     private fun setProgressDialog(code: Int) {
@@ -122,9 +119,9 @@ class GalleryActivity : AppCompatActivity() {
         }
     }
 
-    protected fun loadImage() {
+    protected fun loadImage(num: Int) {
         Glide.with(this@GalleryActivity)
-                .load(URL)
+                .load(urls.get(num))
                 .listener(object : RequestListener<Drawable?> {
                     override fun onLoadFailed(e: GlideException?, model: Any, target: Target<Drawable?>, isFirstResource: Boolean): Boolean {
                         setProgressDialog(0)
@@ -148,6 +145,18 @@ class GalleryActivity : AppCompatActivity() {
         Timer().schedule(3000){
             println("delayyy")
             println("all snaps=$snapList \n urls=$urls")
+        }
+
+    }
+
+    public fun loadClicked(view: View){
+        numOfPics++
+        setProgressDialog(1) //start loading
+        if(!urls.isEmpty() && numOfPics<urls.size)
+            loadImage(numOfPics)
+        else {
+            setProgressDialog(0)
+            Toast.makeText(applicationContext,"URL not found",Toast.LENGTH_SHORT).show()
         }
     }
 }

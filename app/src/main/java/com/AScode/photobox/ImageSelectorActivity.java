@@ -149,8 +149,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
         }
     }
 
-    //upload image to firebase(END)
-
+    //upload image to firebase
     public void uploadImage(View view){
 
         imageName="IMG_"+date+"_"+time;
@@ -167,11 +166,10 @@ public class ImageSelectorActivity extends AppCompatActivity {
             //create storage refs to get download url
             final StorageReference ref;
 
-
             //create a subfolder String for final upload in it
             String uploadSubFolder;
             if(selectedItem_fromDropdown == null || selectedItem_fromDropdown.equals("Select an Item")){
-                ref=storage.getReference().child(myName.trim()).child(imageName);
+                ref=storage.getReference().child(linkedName.trim()).child(imageName);
                 uploadSubFolder="Nothing";
                 uploadTask=ref.putBytes(data);
                 System.out.println(uploadSubFolder);
@@ -181,7 +179,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
                 uploadSubFolder="/"+selectedItem_fromDropdown;
                 //actual upload
                 //every image has different name using name as date and time
-                ref=storage.getReference().child(myName.trim()).child(uploadSubFolder).child(imageName);
+                ref=storage.getReference().child(linkedName.trim()).child(uploadSubFolder).child(imageName);
                 uploadTask=ref.putBytes(data);
                 //folder name is myName=user's display name
                 System.out.println(uploadSubFolder);

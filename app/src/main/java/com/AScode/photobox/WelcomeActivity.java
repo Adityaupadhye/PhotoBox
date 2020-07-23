@@ -320,7 +320,7 @@ public class WelcomeActivity extends AppCompatActivity {
         userRef.addChildEventListener(childEventListener);
 
 
-        //to start animation afer 1 sec
+        //to start animation afer 2 sec
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
