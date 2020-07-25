@@ -270,8 +270,8 @@ public class ImageSelectorActivity extends AppCompatActivity {
         //assigning firebaseAuth
         mAuth=FirebaseAuth.getInstance();
         user=mAuth.getCurrentUser();
-        assert user != null;
-        myName=user.getDisplayName();
+        if(user != null)
+            myName=user.getDisplayName();
         System.out.println("display name: "+myName);
 
         //Snackbar
@@ -283,9 +283,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
         snackbarLayout.setMinimumHeight(150);
         snackbar.show();
 
-        //init WelAc
-        WelcomeActivity welcomeActivity=new WelcomeActivity();
-        //initial both maps and give value from WelAc
+        //initial both maps and give value from WelAc intents
         userMapISA=(HashMap<String, String>) getIntent().getSerializableExtra("userMap");
         email_UIDMapISA=(HashMap<String, String>) getIntent().getSerializableExtra("emailUIDMap");
         System.out.println(userMapISA);
@@ -356,7 +354,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
             }
         });
 
-        //rotate image when imageview clicked
+        //rotate imageView when imageview clicked
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -430,8 +428,8 @@ public class ImageSelectorActivity extends AppCompatActivity {
         System.out.println("(Inside setSubFolder)written to DB="+subfolderName);
     }
 
-    //for creating subFolder
-    //create a method which opens a dialog to enter subFolderName and return the name
+    /* for creating subFolder
+    create a method which opens a dialog to enter subFolderName and return the name*/
     public void createSubFolder(View view){
 
         View subFolderDialogView= getLayoutInflater().inflate(R.layout.create_sub_folder_dialog,null);

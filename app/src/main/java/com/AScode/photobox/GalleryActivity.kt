@@ -38,27 +38,12 @@ class GalleryActivity : AppCompatActivity() {
     private var numOfPics=-1
 
 
-    fun getLinkedName(){
-        //get linkedName
-        linkedUsersRef.addChildEventListener(object: ChildEventListener{
-            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                val split=snapshot.key?.split("AND")
-
-                if(split?.get(0).equals(myName) || split?.get(1).equals(myName)){
-                    linkedName=snapshot.key
-                }
-            }
-            override fun onCancelled(error: DatabaseError) {}
-            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
-            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
-            override fun onChildRemoved(snapshot: DataSnapshot) {}
-        })
-    }
-
     fun getURL(){
         linkedUsersRef.child(linkedName!!).child("snaps").addChildEventListener(object :ChildEventListener{
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                snapList.add(snapshot.key!!)
+                if (snapshot.key != null)
+                    snapList.add(snapshot.key!!)
+
                 urls.add(snapshot.value.toString())
                 println("snap=$snapList and url=$urls")
             }
@@ -87,25 +72,26 @@ class GalleryActivity : AppCompatActivity() {
         linkedUsersRef =FirebaseDatabase.getInstance().reference.child("linkedUsers")
 
         //to get linkedName
-        getLinkedName()
+        linkedName=intent.getStringExtra("linkedUserName")
+        println("linkedName form intent is $linkedName")
 
         //get url from DB
         println("myName is $myName \t current firebaseUser is $firebaseUser")
-        Timer().schedule(3000){
-            getURL()
-        }
+        getURL()
 
         //toolbar
         val toolbar = findViewById<Toolbar>(R.id.galleryToolbar)
         setSupportActionBar(toolbar)
         toolbar.setNavigationOnClickListener {
+            imgViewer?.putExtra("myNameForBack",myName)
             startActivity(imgViewer)
             finish()
         }
 
         //add animation to button to show after 3sec
         loadButton.alpha=0f
-        loadButton.animate().alpha(1f).setDuration(3000)
+        loadButton.translationY=500f
+        loadButton.animate().translationY(0f).alpha(1f).setDuration(3000)
     }
 
     private fun setProgressDialog(code: Int) {

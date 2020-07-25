@@ -50,7 +50,7 @@ public class WelcomeActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseUser user;
     String myName,linkedName="",selectedName,selectedEmail;
-    Intent login,imgSelecter,imgVewer;
+    Intent login,imgSelecter,imgViewer;
     AlertDialog dialog;
     private TextView linkText,showLinkedPerson;
     protected EditText searchNameEditText;
@@ -253,7 +253,7 @@ public class WelcomeActivity extends AppCompatActivity {
         //intents
         login=new Intent(getApplicationContext(),LoginActivity.class);
         imgSelecter=new Intent(getApplicationContext(),ImageSelectorActivity.class);
-        imgVewer=new Intent(getApplicationContext(),ImageViewerActivity.class);
+        imgViewer=new Intent(getApplicationContext(),ImageViewerActivity.class);
 
         //getting current user display name
         if(user!=null)
@@ -277,7 +277,7 @@ public class WelcomeActivity extends AppCompatActivity {
 
         nameArrayAdapter=new ArrayAdapter<>(WelcomeActivity.this,R.layout.mylist,nameArrayList);//to adapt single item listView
 
-        showLinkedPerson.setMovementMethod(new ScrollingMovementMethod());
+        showLinkedPerson.setMovementMethod(new ScrollingMovementMethod());// to scroll listView in scrollView
         showLinkedPerson.setText("You are Linked to: "+linkedName);
 
         //to make request section invisible in the start
@@ -291,24 +291,30 @@ public class WelcomeActivity extends AppCompatActivity {
         //to set text if linked
         checkIfLinked();
 
-        String[] split=showLinkedPerson.getText().toString().split(":");
-        linkedName=split[1];
-        System.out.println("linkedName is "+linkedName+"length of linkedName="+linkedName.length());
-
-        //add onClickListener for link TextView to make request section visible
-        linkText.setOnClickListener(new View.OnClickListener() {
+        //execute this code after 5sec so that linkedName is displayed till then
+        new Handler().postDelayed(new Runnable() {
             @Override
-            public void onClick(View view) {
-                if(linkedName.equals(" ")){
-                    searchNameEditText.setVisibility(View.VISIBLE);
-                    request.setVisibility(View.VISIBLE);
-                    searchListView.setVisibility(View.VISIBLE);
-                }else{
-                    Toast.makeText(WelcomeActivity.this,"You are Already Linked To a Person",Toast.LENGTH_SHORT).show();
-                }
+            public void run() {
+                String[] split=showLinkedPerson.getText().toString().split(":");
+                linkedName=split[1];
+                System.out.println("linkedName is "+linkedName+"length of linkedName="+linkedName.length());
 
+                //add onClickListener for link TextView to make request section visible
+                linkText.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if(linkedName.equals(" ")){
+                            searchNameEditText.setVisibility(View.VISIBLE);
+                            request.setVisibility(View.VISIBLE);
+                            searchListView.setVisibility(View.VISIBLE);
+                        }else{
+                            Toast.makeText(WelcomeActivity.this,"You are Already Linked To a Person",Toast.LENGTH_SHORT).show();
+                        }
+
+                    }
+                });
             }
-        });
+        },5000);
 
         //Listener when text is changed
         searchNameEditText.addTextChangedListener(textWatcher);
@@ -320,7 +326,7 @@ public class WelcomeActivity extends AppCompatActivity {
         userRef.addChildEventListener(childEventListener);
 
 
-        //to start animation afer 2 sec
+        //to start animation afer 2 sec after welcomeDialog is dismissed
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -367,7 +373,7 @@ public class WelcomeActivity extends AppCompatActivity {
                 return true;
             }
             case R.id.notifyAccept:{
-                Toast.makeText(WelcomeActivity.this,"Link Request Accepted by ",Toast.LENGTH_SHORT).show();
+                Toast.makeText(WelcomeActivity.this,"Link Request Accepted by "+linkedName,Toast.LENGTH_SHORT).show();
                 return true;
             }
             default: return super.onOptionsItemSelected(item);
@@ -376,7 +382,8 @@ public class WelcomeActivity extends AppCompatActivity {
 
     //view button action
     public void viewer(View view){
-        startActivity(imgVewer);
+        imgViewer.putExtra("myName",myName);
+        startActivity(imgViewer);
         overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
     }
 
@@ -506,7 +513,6 @@ public class WelcomeActivity extends AppCompatActivity {
                     System.out.println("My request is accepted and i am linked to"+requestAcceptMap.get("linkedTo"));
                     myMenu.findItem(R.id.notifyAccept).setVisible(true);//show menu item of notification
                     showLinkedPerson.setText("You are Linked to: "+requestAcceptMap.get("linkedTo"));
-
 
                 }
 

@@ -12,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
@@ -24,6 +25,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Timer;
@@ -31,15 +33,15 @@ import java.util.TimerTask;
 
 public class ImageViewerActivity extends AppCompatActivity {
     private Toolbar toolbar;
-    String mainFolder="",myName,linkedUserName;
+    private static final String select="Select A subFolder";
+    String mainFolder="",myName,linkedUserName,selectedSubFolder=select;
     Intent imgSelecter,gallery,welcome;
     private ArrayList<String> subfolders=new ArrayList<>();
-    private ArrayAdapter<String> stringArrayAdapter;
-    private Spinner spinner;
     private TextView mainFolderText;
-    FirebaseUser currentUser;
     DatabaseReference linkedUsersRef;
-    Button imgViewButton;
+    private Button imgViewButton;
+    private Spinner subfolderDropdown;
+    private ArrayAdapter<String> subFolderAdapter;
 
 
     //to find correct linkedUserName
@@ -74,36 +76,62 @@ public class ImageViewerActivity extends AppCompatActivity {
         }
     };
 
+    private void fillSubFolders(){
+        linkedUsersRef.child(linkedUserName).child("subfolders").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                String subValue;
+                for(DataSnapshot subs:snapshot.getChildren()){
+                    if(subs.getValue() != null){ //null check
+                        subValue=subs.getValue().toString();
+                        System.out.println("subs is "+subValue);
+                        if( !subfolders.contains(subValue) ){
+                            subfolders.add(subValue);
+                            subFolderAdapter.notifyDataSetChanged();
+                        }
+                    }
+
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+            }
+        });
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_viewer);
 
         //views
-        spinner=findViewById(R.id.spin);
-        mainFolderText=findViewById(R.id.mainFolderText);
-        imgViewButton=findViewById(R.id.imgViewBtn);
+        subfolderDropdown = findViewById(R.id.spin);
+        mainFolderText = findViewById(R.id.mainFolderText);
+        imgViewButton = findViewById(R.id.imgViewBtn);
 
         //intents
-        imgSelecter=new Intent(getApplicationContext(),ImageSelectorActivity.class);
-        welcome=new Intent(getApplicationContext(),WelcomeActivity.class);
-        gallery=new Intent(getApplicationContext(),GalleryActivity.class);
+        imgSelecter = new Intent(getApplicationContext(), ImageSelectorActivity.class);
+        welcome = new Intent(getApplicationContext(), WelcomeActivity.class);
+        gallery = new Intent(getApplicationContext(), GalleryActivity.class);
 
         //databaseRef
-        linkedUsersRef= FirebaseDatabase.getInstance().getReference().child("linkedUsers");
+        linkedUsersRef = FirebaseDatabase.getInstance().getReference().child("linkedUsers");
         //add childEventListener to linkedUserRef
         linkedUsersRef.addChildEventListener(linkedUsers);
 
-        //firebase Auth and user
-        currentUser= FirebaseAuth.getInstance().getCurrentUser();
-        if(currentUser != null)
-            myName=currentUser.getDisplayName();
+        //getting myName form intent
+        myName = getIntent().getStringExtra("myName");
+        if (myName == null){
+            //intent is from back of Gallery
+            myName = getIntent().getStringExtra("myNameForBack");
+        }
+        System.out.println("myName from intent is "+myName);
 
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 mainFolder=linkedUserName;
-                mainFolderText.setText(String.format("MainFolder: %s", mainFolder));
+                mainFolderText.setText(mainFolder);
             }
         },3000);
 
@@ -139,7 +167,30 @@ public class ImageViewerActivity extends AppCompatActivity {
         });
 
         //arraylist and adapter
-        stringArrayAdapter=new ArrayAdapter<>(ImageViewerActivity.this,R.layout.spinner_layout,subfolders);
+        subFolderAdapter=new ArrayAdapter<>(ImageViewerActivity.this,R.layout.spinner_layout,subfolders);
+        subfolders.add(select);// to add this when nothing is added
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                //to fill subfolderList
+                fillSubFolders();
+                subfolderDropdown.setAdapter(subFolderAdapter);
+
+                // to set itemClickListener for dropdown
+                subfolderDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        selectedSubFolder=subfolderDropdown.getItemAtPosition(i).toString();
+                        System.out.println("selectedSubFolder is "+selectedSubFolder);
+                    }
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) { }
+                });
+
+            }
+        },3000);
+
     }
 
     @Override
@@ -150,7 +201,8 @@ public class ImageViewerActivity extends AppCompatActivity {
     }
 
     public void viewImg(View view){
-        startActivity(gallery);
         gallery.putExtra("linkedUserName",linkedUserName);
+        startActivity(gallery);
+        overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
     }
 }
