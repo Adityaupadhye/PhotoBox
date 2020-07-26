@@ -34,7 +34,7 @@ import java.util.TimerTask;
 public class ImageViewerActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private static final String select="Select A subFolder";
-    String mainFolder="",myName,linkedUserName,selectedSubFolder=select;
+    String mainFolder="", myName, linkedUserName, selectedSubFolder=select;
     Intent imgSelecter,gallery,welcome;
     private ArrayList<String> subfolders=new ArrayList<>();
     private TextView mainFolderText;
@@ -76,6 +76,7 @@ public class ImageViewerActivity extends AppCompatActivity {
         }
     };
 
+    //to fill subfolders List
     private void fillSubFolders(){
         linkedUsersRef.child(linkedUserName).child("subfolders").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -161,7 +162,7 @@ public class ImageViewerActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(welcome);
+                overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
                 finish();
             }
         });
@@ -201,7 +202,9 @@ public class ImageViewerActivity extends AppCompatActivity {
     }
 
     public void viewImg(View view){
+        gallery.putExtra("myNameFromIntent",myName);
         gallery.putExtra("linkedUserName",linkedUserName);
+        gallery.putExtra("subFolder",selectedSubFolder);
         startActivity(gallery);
         overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
     }

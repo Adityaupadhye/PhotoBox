@@ -511,7 +511,8 @@ public class WelcomeActivity extends AppCompatActivity {
                 if(requestAcceptMap.get("linkedTo") != null && requestAcceptMap.get("Link Request sent to") != null && linkedName.isEmpty()){
                     //yes i have sent a request AND my request is accepted
                     System.out.println("My request is accepted and i am linked to"+requestAcceptMap.get("linkedTo"));
-                    myMenu.findItem(R.id.notifyAccept).setVisible(true);//show menu item of notification
+//                    if(myMenu != null)  //to avoid null exception
+                        myMenu.findItem(R.id.notifyAccept).setVisible(true);//show menu item of notification
                     showLinkedPerson.setText("You are Linked to: "+requestAcceptMap.get("linkedTo"));
 
                 }

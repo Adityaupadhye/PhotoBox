@@ -39,6 +39,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
@@ -70,8 +71,9 @@ public class ImageSelectorActivity extends AppCompatActivity {
    String imageName;
    private DatabaseReference linkedUsersRef;
    private HashMap<String,String> userMapISA,email_UIDMapISA;//to get hashmaps from WelActivity i have used intent Extras
-    private final static String select="Select an Item";
+   private final static String select="Select a subFolder";
 
+    // add subFolders from DB to stringList
     ChildEventListener getSubfolderListener=new ChildEventListener() {
         @Override
         public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
@@ -98,46 +100,35 @@ public class ImageSelectorActivity extends AppCompatActivity {
         }
     };
 
-    ChildEventListener subfolderListener=new ChildEventListener() { //to get to the point of subfolders and write sunfolders
+    // to get the linkedName and push the subFolder to DB
+    ValueEventListener pushSubFolder=new ValueEventListener() {
         @Override
-        public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-            System.out.println(snapshot.getKey());
-            String[] split=snapshot.getKey().split("AND");
-            //find if entering the correct DB by splitting snapKey with "AND" and checking if it contains myName
+        public void onDataChange(@NonNull DataSnapshot snapshot) {
+            for(DataSnapshot data: snapshot.getChildren()){
+                // null check for safety
+                if(data !=  null && data.getKey() != null){
+                    String[] splitKey=data.getKey().split("AND");
+                    //find if entering the correct DB by splitting snapKey with "AND" and checking if it contains myName
+                    if(splitKey[0].equals(myName) || splitKey[1].equals(myName)){
+                        //entered correct DB
+                        System.out.println("entered Correct DB");
 
-            if(split[0].equals(myName) || split[1].equals(myName)){
-                System.out.println("yesss");
+                        if(subfolderName!=null)        //as this childEvent is called in oncreate also write to DB only when subFolderName is not null
+                            linkedUsersRef.child(data.getKey()).child("subfolders").push().setValue(subfolderName);
 
-                if(subfolderName!=null)        //as this childEvent is called in oncreate also write to DB only when subFolderName is not null
-                    linkedUsersRef.child(snapshot.getKey()).child("subfolders").push().setValue(subfolderName);
+                        //get linkedName
+                        linkedName=data.getKey();
+                        System.out.println("linkedName in ValueEventListener is "+linkedName);
 
-                linkedName=snapshot.getKey();
-                System.out.println("linkedName is "+linkedName);
-
-                System.out.println(snapshot.child("subfolders").getKey());
+                        //to print ssubfolders
+                        System.out.println(data.child("subfolders").getKey());
+                    }
+                }
 
             }
-
-            System.out.println(split[0]+"\n"+split[1]);
-
-        }
-
-        @Override
-        public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
         }
         @Override
-        public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-        }
-        @Override
-        public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-        }
-        @Override
-        public void onCancelled(@NonNull DatabaseError error) {
-
-        }
+        public void onCancelled(@NonNull DatabaseError error) { }
     };
 
     //choose an image from gallery
@@ -262,6 +253,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
     }
 
     @Override
+    @SuppressWarnings("unchecked") //to suppress casting to hashMap warnings
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_selector);
@@ -321,7 +313,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(welcome);
+                overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
                 finish();
             }
         });
@@ -380,10 +372,10 @@ public class ImageSelectorActivity extends AppCompatActivity {
             }
         });
 
-        //set subFolder from DB
-            linkedUsersRef.addChildEventListener(subfolderListener);
+        //here this is used to get linkedName
+        linkedUsersRef.addListenerForSingleValueEvent(pushSubFolder);
 
-        //to run this code after childevent listener is executed to avoid the linkedName to be null
+        //to run this code after pushSubFolder listener is executed to avoid the linkedName to be null
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -394,7 +386,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
 
 
         if(stringList.isEmpty())
-            stringList.add("Select an Item");
+            stringList.add(select);
 
         //set Adapter for dropdown
         ArrayAdapter<String> stringArrayAdapter=new ArrayAdapter<>(ImageSelectorActivity.this,R.layout.spinner_layout,stringList);
@@ -424,7 +416,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
         System.out.println("updated list= " + stringList);
 
         //add subfolder to DB of linkedUsers
-        linkedUsersRef.addChildEventListener(subfolderListener);
+        linkedUsersRef.addListenerForSingleValueEvent(pushSubFolder);
         System.out.println("(Inside setSubFolder)written to DB="+subfolderName);
     }
 
@@ -446,7 +438,9 @@ public class ImageSelectorActivity extends AppCompatActivity {
                         //extra conditions
                         if(!subfolderName.isEmpty()) {
                             setSubfolder();
-                        }else {
+                            Toast.makeText(ImageSelectorActivity.this,"subFolder Created---"+subfolderName,Toast.LENGTH_SHORT).show();
+                        }
+                        else {
                             Toast.makeText(ImageSelectorActivity.this, "No Folder Name Entered", Toast.LENGTH_SHORT).show();
                         }
                     }
