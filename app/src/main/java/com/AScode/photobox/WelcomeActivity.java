@@ -66,6 +66,7 @@ public class WelcomeActivity extends AppCompatActivity {
     boolean checkMes=false;
     String fromName,fromEmail;
     Button viewBtn,uploadImgBtn;
+    boolean alreadylinked=false;// to check if the person is already linked to someone else
 
     //ChildEvent listener for firebase Database
     ChildEventListener childEventListener=new ChildEventListener() {    //called in TextWatcher which is called in onCreate
@@ -396,44 +397,79 @@ public class WelcomeActivity extends AppCompatActivity {
         overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
     }
 
+    private boolean isIfAlreadyLinked(){
+        String linkUID=email_uidMap.get(selectedEmail);  //to get UID of that person by using selectedEmail
+        if(linkUID != null){
+
+            userRef.child(linkUID).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    for(DataSnapshot data: snapshot.getChildren()){
+                        if(data.getKey() != null){ // null check
+                            if(data.getKey().equals("linkedTo") || data.getKey().equals("RequestFrom") ){
+                                // if that person's DB has "linkedTo" or "RequestFrom" then he is already linked or has requested
+                                alreadylinked=true;
+                            }
+                        }
+                    }
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) { }
+            });
+
+        }
+        else{
+            System.out.println("linkUID not found");
+        }
+        return alreadylinked;
+    }
+
     //when request button is clicked---sender
     public void linkRequest(View view){     //to send request to selected person
         String getNameFromSearch=searchNameEditText.getText().toString();//get text from searchEditText
 
-        //to check if i am not sending myslef a request AND nameArrayList contains the selectedName
-        if(!Objects.equals(userMap.get(getNameFromSearch), user.getEmail()) && nameArrayList.contains(getNameFromSearch)){
-            //add a message to requested user's DB message="request from ___"
+        //first check if that person is already linked or requested
+        if( isIfAlreadyLinked() ){
+            System.out.println("that person is already linkedTo someone else");
+            Toast.makeText(WelcomeActivity.this,"Cannot send request to "+selectedName+" \nThis person is already linked to someone else",Toast.LENGTH_SHORT).show();
+        }
+        else{
+            //to check if i am not sending myslef a request AND nameArrayList contains the selectedName
+            if(!Objects.equals(userMap.get(getNameFromSearch), user.getEmail()) && nameArrayList.contains(getNameFromSearch)){
+                //add a message to requested user's DB message="request from ___"
 
-            DatabaseReference toLinkPerson=userRef.child(Objects.requireNonNull(email_uidMap.get(selectedEmail)));
-            //creating a map for this will delete the existing data and override that with this info
+                DatabaseReference toLinkPerson=userRef.child(Objects.requireNonNull(email_uidMap.get(selectedEmail)));
+                //creating a map for this will delete the existing data and override that with this info
 
-            toLinkPerson.child("message").setValue("Link Request from: "+myName);//add a messgage to the reciever
-            toLinkPerson.child("RequestFrom").setValue(myName);//add from whom the request is(name)
-            toLinkPerson.child("RequestFromEmail").setValue(userMap.get(myName));//add from whom the request is(email)
+                toLinkPerson.child("message").setValue("Link Request from: "+myName);//add a messgage to the reciever
+                toLinkPerson.child("RequestFrom").setValue(myName);//add from whom the request is(name)
+                toLinkPerson.child("RequestFromEmail").setValue(userMap.get(myName));//add from whom the request is(email)
 
-            //to check
-            System.out.println("message sent to: "+userMap.get(selectedName));
+                //to check
+                System.out.println("message sent to: "+userMap.get(selectedName));
 
-            //also in my DB write that i have sent a linkRequest to this person
-            userRef.child(user.getUid()).child("Link Request sent to").setValue(selectedEmail);
+                //also in my DB write that i have sent a linkRequest to this person
+                userRef.child(user.getUid()).child("Link Request sent to").setValue(selectedEmail);
 
-            //show a dialog giving message "request sent"
-            AlertDialog alertDialog=new AlertDialog.Builder(WelcomeActivity.this)
-                    .setTitle("SUCCESS")
-                    .setMessage("Request sent Successfully to "+selectedName)
-                    .setPositiveButton("OK",null)
-                    .setCancelable(false)
-                    .show();
-            alertDialog.setCanceledOnTouchOutside(false);
+                //show a dialog giving message "request sent"
+                AlertDialog alertDialog=new AlertDialog.Builder(WelcomeActivity.this)
+                        .setTitle("SUCCESS")
+                        .setMessage("Request sent Successfully to "+selectedName)
+                        .setPositiveButton("OK",null)
+                        .setCancelable(false)
+                        .show();
+                alertDialog.setCanceledOnTouchOutside(false);
 
-            searchListView.setAdapter(null);
-            searchNameEditText.setText(null);
-            searchListView.setVisibility(View.GONE);
-            searchNameEditText.setVisibility(View.GONE);
-            request.setVisibility(View.GONE);
+                searchListView.setAdapter(null);
+                searchNameEditText.setText(null);
+                searchListView.setVisibility(View.GONE);
+                searchNameEditText.setVisibility(View.GONE);
+                request.setVisibility(View.GONE);
 
-        }else{
-            Toast.makeText(WelcomeActivity.this,"Cant send request to yourself",Toast.LENGTH_SHORT).show();
+            }else{
+                Toast.makeText(WelcomeActivity.this,"Cant send request to yourself",Toast.LENGTH_SHORT).show();
+
+            }
         }
 
     }
