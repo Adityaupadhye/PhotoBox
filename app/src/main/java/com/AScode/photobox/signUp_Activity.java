@@ -126,6 +126,7 @@ public class signUp_Activity extends AppCompatActivity {
         if(user!=null){
             Toast.makeText(getApplicationContext(),"You are Signed IN",Toast.LENGTH_SHORT).show();
             System.out.println("created account and sent to welcomeActivity");
+            welcome.putExtra("nameFromSignUp",name);
             startActivity(welcome);
             finish();
             overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);

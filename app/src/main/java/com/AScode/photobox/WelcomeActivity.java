@@ -67,6 +67,7 @@ public class WelcomeActivity extends AppCompatActivity {
     String fromName,fromEmail;
     Button viewBtn,uploadImgBtn;
     boolean alreadylinked=false;// to check if the person is already linked to someone else
+    ProgressDialog loadingDiaog;
 
     //ChildEvent listener for firebase Database
     ChildEventListener childEventListener=new ChildEventListener() {    //called in TextWatcher which is called in onCreate
@@ -240,6 +241,18 @@ public class WelcomeActivity extends AppCompatActivity {
         linkDialog.getButton(AlertDialog.BUTTON_POSITIVE);
     }
 
+    //to show loading whenever needed
+    protected void showLoading(int code){
+        loadingDiaog.setProgressStyle(android.R.style.Widget_DeviceDefault_ProgressBar);
+        loadingDiaog.setMessage("Sending Request..");
+        loadingDiaog.setCancelable(false);
+        loadingDiaog.setCanceledOnTouchOutside(false);
+        loadingDiaog.show();
+        if(code==0){
+            loadingDiaog.dismiss();
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -257,9 +270,16 @@ public class WelcomeActivity extends AppCompatActivity {
         imgSelecter=new Intent(getApplicationContext(),ImageSelectorActivity.class);
         imgViewer=new Intent(getApplicationContext(),ImageViewerActivity.class);
 
+        //loading dialog
+        loadingDiaog=new ProgressDialog(WelcomeActivity.this);
+
         //getting current user display name
         if(user!=null)
             myName= user.getDisplayName();
+
+        //myName could be null if directly getting from signIn
+        if(myName == null)
+            myName=getIntent().getStringExtra("nameFromSignUp");
 
         ActionBar bar=getSupportActionBar();
         assert bar != null;
@@ -397,8 +417,9 @@ public class WelcomeActivity extends AppCompatActivity {
         overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
     }
 
-    private boolean isIfAlreadyLinked(){
+    private void isAlreadyLinked(){
         String linkUID=email_uidMap.get(selectedEmail);  //to get UID of that person by using selectedEmail
+        System.out.println("linkUID is "+linkUID);
         if(linkUID != null){
 
             userRef.child(linkUID).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -406,9 +427,11 @@ public class WelcomeActivity extends AppCompatActivity {
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     for(DataSnapshot data: snapshot.getChildren()){
                         if(data.getKey() != null){ // null check
+                            System.out.println("data keys= "+data.getKey());
                             if(data.getKey().equals("linkedTo") || data.getKey().equals("RequestFrom") ){
                                 // if that person's DB has "linkedTo" or "RequestFrom" then he is already linked or has requested
                                 alreadylinked=true;
+                                System.out.println("user is already  linked(in checking progress)---"+alreadylinked);
                             }
                         }
                     }
@@ -421,56 +444,67 @@ public class WelcomeActivity extends AppCompatActivity {
         else{
             System.out.println("linkUID not found");
         }
-        return alreadylinked;
     }
 
     //when request button is clicked---sender
     public void linkRequest(View view){     //to send request to selected person
-        String getNameFromSearch=searchNameEditText.getText().toString();//get text from searchEditText
+        final String getNameFromSearch=searchNameEditText.getText().toString();//get text from searchEditText
+        isAlreadyLinked();
+        //start loading
+        showLoading(1);
 
-        //first check if that person is already linked or requested
-        if( isIfAlreadyLinked() ){
-            System.out.println("that person is already linkedTo someone else");
-            Toast.makeText(WelcomeActivity.this,"Cannot send request to "+selectedName+" \nThis person is already linked to someone else",Toast.LENGTH_SHORT).show();
-        }
-        else{
-            //to check if i am not sending myslef a request AND nameArrayList contains the selectedName
-            if(!Objects.equals(userMap.get(getNameFromSearch), user.getEmail()) && nameArrayList.contains(getNameFromSearch)){
-                //add a message to requested user's DB message="request from ___"
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("before calling method---"+alreadylinked);
+                showLoading(0);
+                //first check if that person is already linked or requested
+                if( alreadylinked ){
+                    System.out.println("in send request---"+alreadylinked);
+                    System.out.println("that person is already linkedTo someone else");
+                    Toast.makeText(WelcomeActivity.this,"Cannot send request to "+selectedName+" \nThis person is already linked to someone else",Toast.LENGTH_SHORT).show();
+                }
+                else{
+                    //to check if i am not sending myslef a request AND nameArrayList contains the selectedName
+                    if(!Objects.equals(userMap.get(getNameFromSearch), user.getEmail()) && nameArrayList.contains(getNameFromSearch)){
+                        //add a message to requested user's DB message="request from ___"
 
-                DatabaseReference toLinkPerson=userRef.child(Objects.requireNonNull(email_uidMap.get(selectedEmail)));
-                //creating a map for this will delete the existing data and override that with this info
+                        DatabaseReference toLinkPerson=userRef.child(Objects.requireNonNull(email_uidMap.get(selectedEmail)));
+                        //creating a map for this will delete the existing data and override that with this info
 
-                toLinkPerson.child("message").setValue("Link Request from: "+myName);//add a messgage to the reciever
-                toLinkPerson.child("RequestFrom").setValue(myName);//add from whom the request is(name)
-                toLinkPerson.child("RequestFromEmail").setValue(userMap.get(myName));//add from whom the request is(email)
+                        toLinkPerson.child("message").setValue("Link Request from: "+myName);//add a messgage to the reciever
+                        toLinkPerson.child("RequestFrom").setValue(myName);//add from whom the request is(name)
+                        toLinkPerson.child("RequestFromEmail").setValue(userMap.get(myName));//add from whom the request is(email)
 
-                //to check
-                System.out.println("message sent to: "+userMap.get(selectedName));
+                        //to check
+                        System.out.println("message sent to: "+userMap.get(selectedName));
 
-                //also in my DB write that i have sent a linkRequest to this person
-                userRef.child(user.getUid()).child("Link Request sent to").setValue(selectedEmail);
+                        //also in my DB write that i have sent a linkRequest to this person
+                        userRef.child(user.getUid()).child("Link Request sent to").setValue(selectedEmail);
 
-                //show a dialog giving message "request sent"
-                AlertDialog alertDialog=new AlertDialog.Builder(WelcomeActivity.this)
-                        .setTitle("SUCCESS")
-                        .setMessage("Request sent Successfully to "+selectedName)
-                        .setPositiveButton("OK",null)
-                        .setCancelable(false)
-                        .show();
-                alertDialog.setCanceledOnTouchOutside(false);
+                        //show a dialog giving message "request sent"
+                        AlertDialog alertDialog=new AlertDialog.Builder(WelcomeActivity.this)
+                                .setTitle("SUCCESS")
+                                .setMessage("Request sent Successfully to "+selectedName)
+                                .setPositiveButton("OK",null)
+                                .setCancelable(false)
+                                .show();
+                        alertDialog.setCanceledOnTouchOutside(false);
 
-                searchListView.setAdapter(null);
-                searchNameEditText.setText(null);
-                searchListView.setVisibility(View.GONE);
-                searchNameEditText.setVisibility(View.GONE);
-                request.setVisibility(View.GONE);
+                        searchListView.setAdapter(null);
+                        searchNameEditText.setText(null);
+                        searchListView.setVisibility(View.GONE);
+                        searchNameEditText.setVisibility(View.GONE);
+                        request.setVisibility(View.GONE);
 
-            }else{
-                Toast.makeText(WelcomeActivity.this,"Cant send request to yourself",Toast.LENGTH_SHORT).show();
+                    }else{
+                        Toast.makeText(WelcomeActivity.this,"Cant send request to yourself",Toast.LENGTH_SHORT).show();
+
+                    }
+                }
 
             }
-        }
+        },2000);
 
     }
 
