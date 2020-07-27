@@ -128,20 +128,20 @@ public class ImageViewerActivity extends AppCompatActivity {
         }
         System.out.println("myName from intent is "+myName);
 
+        //animate button until linkedUserName is found
+        imgViewButton.setAlpha(0);
+        mainFolderText.setAlpha(0);
+        mainFolderText.animate().alpha(1).setDuration(4000);
+
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 mainFolder=linkedUserName;
                 mainFolderText.setText(mainFolder);
+                imgViewButton.setAlpha(1);
+
             }
         },3000);
-
-        //animate button until linkedUserName is found
-        imgViewButton.setAlpha(0);
-        imgViewButton.animate().alpha(1).setDuration(4000);
-        mainFolderText.setAlpha(0);
-        mainFolderText.animate().alpha(1).setDuration(4000);
-
 
         //find toolbar object
         toolbar=findViewById(R.id.toolbar);

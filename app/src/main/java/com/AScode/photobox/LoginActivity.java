@@ -40,7 +40,7 @@ public class LoginActivity extends AppCompatActivity {
     String email,pswd;
     String enteredPin,finalPin,newPIN,confirmPIN;
     SharedPreferences preferences;
-    private FirebaseAuth mAuth=FirebaseAuth.getInstance();  //initialize firebase auth
+    private FirebaseAuth mAuth;
     TextView signUp;
     Intent welcome,sign;
     private GoogleSignInClient mGoogleSignInClient;
@@ -230,11 +230,13 @@ public class LoginActivity extends AppCompatActivity {
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        //firebaseAuth
+        mAuth=FirebaseAuth.getInstance();
 
         emailText =findViewById(R.id.emailText);
         pswdText=findViewById(R.id.pswdText);
@@ -254,7 +256,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-
         //intents
         welcome=new Intent(getApplicationContext(),WelcomeActivity.class);
         sign=new Intent(getApplicationContext(),signUp_Activity.class);
@@ -271,13 +272,11 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-
     @Override
     public void onStart() {
         super.onStart();
 
         Log.i("onStart: ","Activity started");
-
     }
 
     //change Activity based on if user is signedIN
@@ -325,7 +324,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         }
     }
-
 
     //google sign in code
     private void firebaseAuthWithGoogle(String idToken) {

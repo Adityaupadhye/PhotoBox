@@ -21,6 +21,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Scroller;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -277,7 +278,7 @@ public class WelcomeActivity extends AppCompatActivity {
 
         nameArrayAdapter=new ArrayAdapter<>(WelcomeActivity.this,R.layout.mylist,nameArrayList);//to adapt single item listView
 
-        showLinkedPerson.setMovementMethod(new ScrollingMovementMethod());// to scroll listView in scrollView
+        //showLinkedPerson.setMovementMethod(new ScrollingMovementMethod());// to scroll textView in scrollView
         showLinkedPerson.setText("You are Linked to: "+linkedName);
 
         //to make request section invisible in the start
@@ -511,7 +512,7 @@ public class WelcomeActivity extends AppCompatActivity {
                 if(requestAcceptMap.get("linkedTo") != null && requestAcceptMap.get("Link Request sent to") != null && linkedName.isEmpty()){
                     //yes i have sent a request AND my request is accepted
                     System.out.println("My request is accepted and i am linked to"+requestAcceptMap.get("linkedTo"));
-//                    if(myMenu != null)  //to avoid null exception
+                    if(myMenu != null)  //to avoid null exception
                         myMenu.findItem(R.id.notifyAccept).setVisible(true);//show menu item of notification
                     showLinkedPerson.setText("You are Linked to: "+requestAcceptMap.get("linkedTo"));
 
@@ -571,7 +572,7 @@ public class WelcomeActivity extends AppCompatActivity {
                 //run this after 5sec so that firebase database gets loaded in around 4sec
                 if(checkMes && linkedName.equals(" ")){
                     System.out.println("checkRequest---message is present");
-                    myMenu.findItem(R.id.notify).setVisible(true);
+                        myMenu.findItem(R.id.notify).setVisible(true);
                 }
                 else{
                     System.out.println("request not found");

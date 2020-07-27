@@ -495,6 +495,8 @@ public class ImageSelectorActivity extends AppCompatActivity {
         menuInflater.inflate(R.menu.menu,menu);
 
         menu.findItem(R.id.notify).setVisible(false);
+        menu.findItem(R.id.notifyAccept).setVisible(false);
+
         return super.onCreateOptionsMenu(menu);
     }
 

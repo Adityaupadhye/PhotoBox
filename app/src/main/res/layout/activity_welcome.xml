@@ -31,7 +31,8 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/showLikedPerson" />
+            app:layout_constraintTop_toBottomOf="@+id/showLikedPerson"
+            />
 
         <Button
             android:id="@+id/uploadImg"
@@ -57,13 +58,15 @@
             android:gravity="center_vertical"
             android:padding="10dp"
             android:textColor="@android:color/black"
-            android:textSize="24sp"
+            android:textSize="20sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            android:nestedScrollingEnabled="true"
             android:scrollHorizontally="true"
+            android:ellipsize="end"
             android:maxLines="1"
-            android:scrollbars="horizontal"/>
+            />
 
         <TextView
             android:id="@+id/linkTxt"
