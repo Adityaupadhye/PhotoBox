@@ -463,6 +463,7 @@ public class WelcomeActivity extends AppCompatActivity {
                     System.out.println("in send request---"+alreadylinked);
                     System.out.println("that person is already linkedTo someone else");
                     Toast.makeText(WelcomeActivity.this,"Cannot send request to "+selectedName+" \nThis person is already linked to someone else",Toast.LENGTH_SHORT).show();
+                    alreadylinked=false;// reset alreadyLinked so that user can try to link others
                 }
                 else{
                     //to check if i am not sending myslef a request AND nameArrayList contains the selectedName
