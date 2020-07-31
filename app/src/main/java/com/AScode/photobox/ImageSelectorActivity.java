@@ -77,10 +77,14 @@ public class ImageSelectorActivity extends AppCompatActivity {
     ChildEventListener getSubfolderListener=new ChildEventListener() {
         @Override
         public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-            if( !stringList.contains(snapshot.getValue().toString()) ){
-                stringList.add(snapshot.getValue().toString());
-                System.out.println("string list updated in DB="+stringList);
+
+            if(snapshot.getValue() != null){  //null check
+                if( !stringList.contains(snapshot.getValue().toString()) ){
+                    stringList.add(snapshot.getValue().toString());
+                    System.out.println("string list updated in DB="+stringList);
+                }
             }
+
         }
         @Override
         public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
@@ -368,6 +372,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
                         })
                         .setNegativeButton("CANCEL",null)
                         .show();
+                alertDialog.setCancelable(false);
                 return false;
             }
         });

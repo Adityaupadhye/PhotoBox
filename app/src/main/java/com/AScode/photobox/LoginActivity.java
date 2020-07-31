@@ -45,6 +45,7 @@ public class LoginActivity extends AppCompatActivity {
     Intent welcome,sign;
     private GoogleSignInClient mGoogleSignInClient;
     final static int RC_SIGN_IN=2;
+    ProgressDialog load; //to show loading
 
     //Login button code
     public void userLogin(View view){
@@ -58,19 +59,14 @@ public class LoginActivity extends AppCompatActivity {
         else if(pswd.isEmpty())
             Toast.makeText(getApplicationContext(),"Please enter Password",Toast.LENGTH_LONG).show();
         else{
-            //show progessbar for loading when signing IN
-            final ProgressDialog progressDialog=new ProgressDialog(LoginActivity.this);
-            progressDialog.setProgressStyle(R.style.Widget_AppCompat_ProgressBar);
-            progressDialog.setMessage("Loading");
-            progressDialog.show();
-            progressDialog.setCanceledOnTouchOutside(false);
+            loading(1); // start loading
             //signIN
             mAuth.signInWithEmailAndPassword(email,pswd)
                     .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if(task.isSuccessful()){
-                                progressDialog.dismiss();
+                                loading(0); //dismiss
                                 //sign in success
                                 Log.d("sign in: ","successful");
                                 Toast.makeText(getApplicationContext(),"signed in succcessfully",Toast.LENGTH_SHORT).show();
@@ -81,7 +77,7 @@ public class LoginActivity extends AppCompatActivity {
                             }else{
                                 //sign in unsuccessful
                                 Log.w("sign in prob:",task.getException());
-                                progressDialog.dismiss();
+                                loading(0); //dismiss
                                 Toast.makeText(getApplicationContext(),"Authentication failed\nIncorrect Password",Toast.LENGTH_SHORT).show();
                                 updateUI(null);
                             }
@@ -230,6 +226,17 @@ public class LoginActivity extends AppCompatActivity {
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
+    protected void loading(int code){
+        load.setProgressStyle(android.R.style.Widget_DeviceDefault_ProgressBar);
+        load.setMessage("Signing In please wait..");
+        load.setCancelable(false);
+        load.setCanceledOnTouchOutside(false);
+        if(code==1)
+            load.show();
+        else if(code == 0)
+            load.dismiss();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -253,12 +260,16 @@ public class LoginActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent=new Intent(getApplicationContext(),signUp_Activity.class);
                 startActivity(intent);
+                overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
             }
         });
 
         //intents
         welcome=new Intent(getApplicationContext(),WelcomeActivity.class);
         sign=new Intent(getApplicationContext(),signUp_Activity.class);
+
+        //progress dialog
+        load=new ProgressDialog(LoginActivity.this);
 
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
@@ -327,6 +338,7 @@ public class LoginActivity extends AppCompatActivity {
 
     //google sign in code
     private void firebaseAuthWithGoogle(String idToken) {
+        loading(1); //start loading
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -337,6 +349,7 @@ public class LoginActivity extends AppCompatActivity {
                             Log.d("TAG: ", "signInWithCredential:success");
                             FirebaseUser user = mAuth.getCurrentUser();
                             if(user!=null){
+                                loading(0); //dismiss
                                 updateUI(user); //to change activity
 
                                 //setting up a map for key vale pairs to add it into firebase data base
@@ -349,6 +362,7 @@ public class LoginActivity extends AppCompatActivity {
                             Snackbar.make(findViewById(R.id.layoutLogin),"Successful Login",Snackbar.LENGTH_SHORT).show();
                         } else {
                             // If sign in fails, display a message to the user.
+                            loading(0); //dismiss
                             Log.w("TAG: ", "signInWithCredential:failure", task.getException());
                             Snackbar.make(findViewById(R.id.layoutLogin), "Authentication Failed.", Snackbar.LENGTH_SHORT).show();
                             updateUI(null);

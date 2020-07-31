@@ -5,7 +5,6 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.os.Handler
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
@@ -17,7 +16,6 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import java.util.*
 import kotlin.collections.ArrayList
@@ -39,7 +37,7 @@ class GalleryActivity : AppCompatActivity() {
     private lateinit var loadButton:Button
     private var numOfPics=-1
 
-
+    //add snapName and url to arraylist
     fun getURL() {
         if (subFolder.equals(select)) {
             println("no subfolder Selected")
@@ -99,7 +97,10 @@ class GalleryActivity : AppCompatActivity() {
 
         //DB refs
         linkedUsersRef =FirebaseDatabase.getInstance().reference.child("linkedUsers")
-        snapRef=linkedUsersRef.child(linkedName!!).child("snaps")
+        if(linkedName != null)  //null check
+            snapRef=linkedUsersRef.child(linkedName!!).child("snaps")
+        else
+            Toast.makeText(this@GalleryActivity,"Error! Try Again!!",Toast.LENGTH_SHORT).show();
 
         //getting subFolder from Intent
         subFolder=intent.getStringExtra("subFolder")
@@ -111,8 +112,8 @@ class GalleryActivity : AppCompatActivity() {
         val toolbar = findViewById<Toolbar>(R.id.galleryToolbar)
         setSupportActionBar(toolbar)
         toolbar.setNavigationOnClickListener {
-            imgViewer?.putExtra("myNameForBack",myName)
-            startActivity(imgViewer)
+            /*imgViewer?.putExtra("myNameForBack",myName)
+            startActivity(imgViewer)*/
             finish()
         }
 
@@ -122,6 +123,7 @@ class GalleryActivity : AppCompatActivity() {
         loadButton.animate().translationY(0f).alpha(1f).setDuration(3000)
     }
 
+    //to show loading dialog
     private fun setProgressDialog(code: Int) {
         progressDialog!!.setProgressStyle(android.R.style.Widget_DeviceDefault_ProgressBar)
         progressDialog!!.setMessage("Loading")
@@ -133,6 +135,7 @@ class GalleryActivity : AppCompatActivity() {
         }
     }
 
+    //load image using glide
     protected fun loadImage(num: Int) {
         Glide.with(this@GalleryActivity)
                 .load(urls.get(num))
@@ -163,6 +166,7 @@ class GalleryActivity : AppCompatActivity() {
 
     }
 
+    //when loadImg button is clicked
     fun loadClicked(view: View){
         numOfPics++
         setProgressDialog(1) //start loading

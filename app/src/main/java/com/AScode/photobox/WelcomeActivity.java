@@ -68,6 +68,7 @@ public class WelcomeActivity extends AppCompatActivity {
     Button viewBtn,uploadImgBtn;
     boolean alreadylinked=false;// to check if the person is already linked to someone else
     ProgressDialog loadingDiaog;
+    private final String error="To View or Upload Images you have to link to a person";
 
     //ChildEvent listener for firebase Database
     ChildEventListener childEventListener=new ChildEventListener() {    //called in TextWatcher which is called in onCreate
@@ -404,17 +405,32 @@ public class WelcomeActivity extends AppCompatActivity {
 
     //view button action
     public void viewer(View view){
-        imgViewer.putExtra("myName",myName);
-        startActivity(imgViewer);
-        overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
+        if(linkedName.length() >1){
+            imgViewer.putExtra("myName",myName);
+            startActivity(imgViewer);
+            overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
+        }
+        else{
+            System.out.println("not linked");
+            Toast.makeText(WelcomeActivity.this,error,Toast.LENGTH_LONG).show();
+        }
+
     }
 
     //upload button action
     public void selecter(View view){
-        imgSelecter.putExtra("userMap",userMap);
-        imgSelecter.putExtra("emailUIDMap",email_uidMap);
-        startActivity(imgSelecter);
-        overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
+
+        if(linkedName.length()>1){
+            imgSelecter.putExtra("userMap",userMap);
+            imgSelecter.putExtra("emailUIDMap",email_uidMap);
+            startActivity(imgSelecter);
+            overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
+        }
+        else{
+            System.out.println("not linked");
+            Toast.makeText(WelcomeActivity.this,error,Toast.LENGTH_LONG).show();
+        }
+
     }
 
     private void isAlreadyLinked(){

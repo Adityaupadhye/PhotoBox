@@ -1,7 +1,6 @@
 package com.AScode.photobox;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,13 +20,42 @@ import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.HashMap;
+import java.util.regex.Pattern;
 
 public class signUp_Activity extends AppCompatActivity {
 
     private EditText nameText, emailText,pswdText,re_pswdText;
     private FirebaseAuth mAuth;
-    private String name,email,pswd,re_pswd;
+    private String name,email,pswd="",re_pswd;
     private Intent welcome;
+    private ProgressDialog load;
+
+    //to show loading
+    private void showLoading(int code){
+        load.setProgressStyle(android.R.style.Widget_DeviceDefault_ProgressBar);
+        load.setMessage("Signing Up.. please wait");
+        load.setCanceledOnTouchOutside(false);
+        load.setCancelable(false);
+        if(code==1)
+            load.show();
+        else if(code==0)
+            load.dismiss();
+    }
+
+    //to check password conditions
+    private void checkPswd(String password){
+        System.out.println("password= "+password);
+        if( Pattern.matches("[a-zA-Z0-9]*",password) ){
+            System.out.println("regex");
+            Toast.makeText(signUp_Activity.this,"Password must contains letters , numbers and special characters",Toast.LENGTH_LONG).show();
+        }
+        if(password.length()<8){
+            Toast.makeText(signUp_Activity.this,"Password must be atleast 8 characters long",Toast.LENGTH_LONG).show();
+        }
+        if( !Pattern.matches("[a-zA-Z0-9]*",password) && password.length()>8){
+            Toast.makeText(signUp_Activity.this,"Password satisfies all conditions",Toast.LENGTH_SHORT).show();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +73,22 @@ public class signUp_Activity extends AppCompatActivity {
 
         //intents
         welcome=new Intent(getApplicationContext(),WelcomeActivity.class);
+
+        //progressDialog
+        load=new ProgressDialog(signUp_Activity.this);
+
+        //check password when pswdText loses focus
+        pswdText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                if(!b){  //focus lost
+                    String text=pswdText.getText().toString();
+                    System.out.println("focus lost---"+text+"  length="+text.length());
+                    checkPswd(text);
+                }
+            }
+        });
+
     }
 
     public void signupUser(View view){
@@ -59,12 +103,7 @@ public class signUp_Activity extends AppCompatActivity {
         }
         //checking if both pswds are equal and no field is null
         else if(pswd.equals(re_pswd)){
-            //to show creating account progress
-            final ProgressDialog progressDialog=new ProgressDialog(signUp_Activity.this);
-            progressDialog.setProgressStyle(R.style.Widget_AppCompat_ProgressBar);
-            progressDialog.setMessage("Loading");
-            progressDialog.show();
-            progressDialog.setCanceledOnTouchOutside(false);
+            showLoading(1); //start loading
             //signUp users
             mAuth.createUserWithEmailAndPassword(email,pswd)
                     .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -87,11 +126,10 @@ public class signUp_Activity extends AppCompatActivity {
                                                     if (task.isSuccessful()) {
                                                         Log.d("profile update: ", "user display name updated---"+name);
                                                     } else {
-                                                        Log.d("profile update: ", task.getException().toString());
+                                                        Log.d("profile update: ", String.valueOf(task.getException()));
                                                     }
                                                 }
                                             });
-
 
                                     //setting up a map for key vale pairs to add it into firebase data base
                                     HashMap<String, String> map = new HashMap<>();
@@ -102,14 +140,14 @@ public class signUp_Activity extends AppCompatActivity {
                                     FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).setValue(map);
                                     System.out.println("Upadted to database");
                                 }
-                                progressDialog.dismiss();
+                                showLoading(0); //dismiss
                                 updateUI_signUp(user);
 
                                 }else{
                                 //signUp not Complete
                                 Log.w("User not created: ",task.getException());
                                 Toast.makeText(getApplicationContext(),"Error! User Not created",Toast.LENGTH_LONG).show();
-                                progressDialog.dismiss();
+                                showLoading(0); //dismiss
                             }
                         }
                     });

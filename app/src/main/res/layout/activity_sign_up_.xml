@@ -1,12 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/signUpScroll"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:fillViewport="true"
+    android:scrollbars="vertical"
+    >
+
+<androidx.constraintlayout.widget.ConstraintLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FCFCE9"
+    android:background="@color/backgroundAll"
     tools:context=".signUp_Activity"
-    android:theme="@style/AppTheme1">
+    android:fitsSystemWindows="true"
+    >
 
     <Button
         android:id="@+id/createAccount"
@@ -33,7 +44,7 @@
         android:background="@drawable/editext_box"
         android:hint="@string/confirm_password"
         android:inputType="textPassword"
-        android:paddingLeft="5dp"
+        android:paddingStart="5dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
@@ -48,7 +59,7 @@
         android:background="@drawable/editext_box"
         android:hint="@string/email"
         android:inputType="textEmailAddress"
-        android:paddingLeft="5dp"
+        android:paddingStart="5dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
@@ -62,7 +73,7 @@
         android:background="@drawable/editext_box"
         android:hint="@string/password"
         android:inputType="textPassword"
-        android:paddingLeft="5dp"
+        android:paddingStart="5dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
@@ -77,7 +88,7 @@
         android:background="@drawable/editext_box"
         android:hint="@string/name"
         android:inputType="text"
-        android:paddingLeft="5dp"
+        android:paddingStart="5dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.504"
         app:layout_constraintStart_toStartOf="parent"
@@ -108,3 +119,7 @@
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
+
+
+

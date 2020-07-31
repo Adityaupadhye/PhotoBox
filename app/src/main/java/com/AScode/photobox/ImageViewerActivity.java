@@ -1,10 +1,5 @@
 package com.AScode.photobox;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,8 +13,11 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -122,10 +120,10 @@ public class ImageViewerActivity extends AppCompatActivity {
 
         //getting myName form intent
         myName = getIntent().getStringExtra("myName");
-        if (myName == null){
+        /*if (myName == null){
             //intent is from back of Gallery
             myName = getIntent().getStringExtra("myNameForBack");
-        }
+        }*/
         System.out.println("myName from intent is "+myName);
 
         //animate button until linkedUserName is found
@@ -153,6 +151,7 @@ public class ImageViewerActivity extends AppCompatActivity {
             public boolean onMenuItemClick(MenuItem item) {
                 if(item.getItemId()==R.id.uplpad){
                     startActivity(imgSelecter);
+                    overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
                 }
                 return false;
             }
