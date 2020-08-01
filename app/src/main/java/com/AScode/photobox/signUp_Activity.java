@@ -29,6 +29,7 @@ public class signUp_Activity extends AppCompatActivity {
     private String name,email,pswd="",re_pswd;
     private Intent welcome;
     private ProgressDialog load;
+    private boolean isEmailCorrect,isPswdCorrect;
 
     //to show loading
     private void showLoading(int code){
@@ -48,12 +49,15 @@ public class signUp_Activity extends AppCompatActivity {
         if( Pattern.matches("[a-zA-Z0-9]*",password) ){
             System.out.println("regex");
             Toast.makeText(signUp_Activity.this,"Password must contains letters , numbers and special characters",Toast.LENGTH_LONG).show();
+            isPswdCorrect=false;
         }
         if(password.length()<8){
             Toast.makeText(signUp_Activity.this,"Password must be atleast 8 characters long",Toast.LENGTH_LONG).show();
+            isPswdCorrect=false;
         }
         if( !Pattern.matches("[a-zA-Z0-9]*",password) && password.length()>8){
             Toast.makeText(signUp_Activity.this,"Password satisfies all conditions",Toast.LENGTH_SHORT).show();
+            isPswdCorrect=true;
         }
     }
 
@@ -64,7 +68,7 @@ public class signUp_Activity extends AppCompatActivity {
 
         //initialize editTexts in onCreate only
         nameText=findViewById(R.id.name);
-        emailText=findViewById(R.id.username);
+        emailText=findViewById(R.id.email);
         pswdText=findViewById(R.id.password);
         re_pswdText=findViewById(R.id.re_password);
 
@@ -89,6 +93,30 @@ public class signUp_Activity extends AppCompatActivity {
             }
         });
 
+        //check if email is appropriate
+        emailText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                if(!b){
+                    //focus is lost
+                    String getEmail=emailText.getText().toString();
+                    System.out.println(getEmail);
+                    if( getEmail.contains("@") && (getEmail.contains(".com") || getEmail.contains(".in")) ){
+                        System.out.println("correct email");
+                        Toast.makeText(signUp_Activity.this,"Email format is appropriate",Toast.LENGTH_SHORT).show();
+                        isEmailCorrect=true;
+                    }
+                    else{
+                        System.out.println("email incorrect");
+                        Toast.makeText(signUp_Activity.this,
+                                "Email format is Improper \nplease check email entered",Toast.LENGTH_SHORT).show();
+                        isEmailCorrect=false;
+                    }
+
+                }
+            }
+        });
+
     }
 
     public void signupUser(View view){
@@ -99,10 +127,11 @@ public class signUp_Activity extends AppCompatActivity {
         re_pswd=re_pswdText.getText().toString();
 
         if(name.isEmpty() || email.isEmpty() || pswd.isEmpty() || re_pswd.isEmpty()){
-            Toast.makeText(this,"Pls Enter All Details!",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,"Please Enter All Details!",Toast.LENGTH_SHORT).show();
         }
         //checking if both pswds are equal and no field is null
-        else if(pswd.equals(re_pswd)){
+        else if(pswd.equals(re_pswd) && isPswdCorrect && isEmailCorrect){
+            System.out.println("all conditions satisfy");
             showLoading(1); //start loading
             //signUp users
             mAuth.createUserWithEmailAndPassword(email,pswd)
@@ -152,6 +181,14 @@ public class signUp_Activity extends AppCompatActivity {
                         }
                     });
 
+        }
+        else if( !isEmailCorrect){
+            Toast.makeText(signUp_Activity.this,
+                    "email entered is Inappropriate \nplease check Email",Toast.LENGTH_SHORT).show();
+        }
+        else if( !isPswdCorrect){
+            Toast.makeText(signUp_Activity.this,
+                    "Password entered does not match all conditions \nplease check Password",Toast.LENGTH_SHORT).show();
         }
         else{
             pswdText.setText(null);
