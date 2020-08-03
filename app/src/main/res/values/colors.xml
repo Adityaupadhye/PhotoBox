@@ -7,4 +7,5 @@
     <color name="yellow">#fff700</color>
     <color name="backgroundAll">#FCFCE9</color>
     <color name="btnBackground">#F3B369</color>
+    <color name="actionBarColor">#F8A23E</color>
 </resources>

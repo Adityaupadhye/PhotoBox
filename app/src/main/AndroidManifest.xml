@@ -14,7 +14,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".GalleryActivity"
-            android:theme="@style/Images"/>
+            android:theme="@style/Images" />
         <activity
             android:name=".ImageViewerActivity"
             android:theme="@style/Images" />
@@ -24,11 +24,10 @@
         <activity
             android:name=".signUp_Activity"
             android:theme="@style/AppTheme"
-            android:windowSoftInputMode="adjustResize"
-            />
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".LoginActivity"
-            android:theme="@style/AppTheme1" >
+            android:theme="@style/AppTheme1">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

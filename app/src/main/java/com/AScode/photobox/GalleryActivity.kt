@@ -1,13 +1,16 @@
 package com.AScode.photobox
 
+import android.app.AlertDialog
 import android.app.ProgressDialog
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -15,8 +18,11 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.target.Target
+import com.bumptech.glide.request.transition.Transition
 import com.google.firebase.database.*
+import java.io.ByteArrayOutputStream
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
@@ -36,6 +42,7 @@ class GalleryActivity : AppCompatActivity() {
     var urls=ArrayList<String>()
     private lateinit var loadButton:Button
     private var numOfPics=-1
+    var imgBitmap:Bitmap?=null
 
     //add snapName and url to arraylist
     fun getURL() {
@@ -58,17 +65,29 @@ class GalleryActivity : AppCompatActivity() {
             })
         }
         else{
-            snapRef.child(subFolder!!).addListenerForSingleValueEvent(object : ValueEventListener{
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    for(snap:DataSnapshot in snapshot.children){
-                        if(snap.key != null)
-                            snapList.add(snapshot.key!!)
+            snapRef.child(subFolder!!).addChildEventListener(object : ChildEventListener{
 
-                        urls.add(snap.value.toString())
-                        println("in SubFolder snap=$snapList and urls=$urls")
-                    }
+                override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                    if(snapshot.key != null)
+                        snapList.add(snapshot.key.toString())
+
+                    urls.add(snapshot.value.toString())
+                    println("snap= $snapList \nurl=$urls")
                 }
-                override fun onCancelled(error: DatabaseError) {}
+
+                override fun onCancelled(error: DatabaseError) {
+
+                }
+                override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
+
+                }
+                override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+
+                }
+                override fun onChildRemoved(snapshot: DataSnapshot) {
+
+                }
+
             })
         }
     }
@@ -121,6 +140,39 @@ class GalleryActivity : AppCompatActivity() {
         loadButton.alpha=0f
         loadButton.translationY=500f
         loadButton.animate().translationY(0f).alpha(1f).setDuration(3000)
+
+        //when imageView is clicked photoActivity should open
+        imgView.setOnClickListener{
+
+            /*the idea is to open a fullscreen dialog when image is clicked
+            the dialog would have layout of photoActivity*/
+
+            //inflate the view of photoActivity
+            val view=layoutInflater.inflate(R.layout.activity_photo,null)
+
+            //image view of the view
+            val photoImg=view.findViewById<ImageView>(R.id.photo)
+            photoImg.setImageBitmap(imgBitmap)
+
+            //toolbar Textview of the view
+            val toolText=view.findViewById<TextView>(R.id.toolbarText)
+            toolText.text=snapList.get(numOfPics)
+
+            //toolbar of view
+            val photoToolbar=view.findViewById<Toolbar>(R.id.photoToolbar)
+
+            //display alertDialog when image is clicked
+            val photoDialog: AlertDialog=AlertDialog.Builder(this,android.R.style.Theme_DeviceDefault_NoActionBar_Fullscreen)
+                    .setView(view)
+                    .show()
+
+            //we can set nav listener in dialog which has layout file containing toolbar with nav icon
+            photoToolbar.setNavigationOnClickListener{
+                photoDialog.dismiss()  //dismiss the dialog when back is clicked on toolbar
+            }
+
+
+        }
     }
 
     //to show loading dialog
@@ -154,6 +206,20 @@ class GalleryActivity : AppCompatActivity() {
                 })
                 .into(imgView)
         imgView.setBackgroundColor(Color.TRANSPARENT)
+
+        //to save this image as bitmap and transfer to photoActivity
+        Glide.with(this@GalleryActivity)
+                .asBitmap()
+                .load(urls.get(num))
+                .into(object : CustomTarget<Bitmap>() {
+                    override fun onLoadCleared(placeholder: Drawable?) {
+
+                    }
+                    override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                        imgBitmap=resource //saved image bitmap
+                    }
+                })
+
     }
 
     override fun onResume() {

@@ -20,17 +20,23 @@
 
     <style name="AppThemePicSelector" parent="Theme.AppCompat.Light">
         <item name="colorPrimary">@color/btnBackground</item>
-        <item name="colorPrimaryDark">#F8A23E</item>
+        <item name="colorPrimaryDark">@color/actionBarColor</item>
         <item name="colorAccent">#000000</item>
         <item name="android:windowContentTransitions">true</item>
     </style>
 
     <style name="Images" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/btnBackground</item>
-        <item name="colorPrimaryDark">#F8A23E</item>
+        <item name="colorPrimaryDark">@color/actionBarColor</item>
         <item name="colorAccent">#000000</item>
         <item name="android:windowContentTransitions">true</item>
         <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="PhotoView" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+        <item name="colorPrimaryDark">@android:color/transparent</item>
+        <item name="android:windowTranslucentNavigation">true</item>
     </style>
 
     <style name="alertDialog" parent="Theme.AppCompat.Dialog.Alert">
