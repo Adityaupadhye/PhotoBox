@@ -22,7 +22,6 @@ import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.request.transition.Transition
 import com.google.firebase.database.*
-import java.io.ByteArrayOutputStream
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
@@ -40,8 +39,9 @@ class GalleryActivity : AppCompatActivity() {
     var subFolder:String?=select
     var snapList=ArrayList<String>()
     var urls=ArrayList<String>()
-    private lateinit var loadButton:Button
-    private var numOfPics=-1
+    private lateinit var loadButton: Button
+    private lateinit var loadBack: Button
+    private var numOfPics=0
     var imgBitmap:Bitmap?=null
 
     //add snapName and url to arraylist
@@ -99,6 +99,7 @@ class GalleryActivity : AppCompatActivity() {
         //all views
         imgView = findViewById(R.id.loadImg)
         loadButton=findViewById(R.id.loadButton)
+        loadBack=findViewById(R.id.loadBack)
 
         //intents
         imgViewer = Intent(this@GalleryActivity, ImageViewerActivity::class.java)
@@ -137,9 +138,10 @@ class GalleryActivity : AppCompatActivity() {
         }
 
         //add animation to button to show after 3sec
-        loadButton.alpha=0f
-        loadButton.translationY=500f
-        loadButton.animate().translationY(0f).alpha(1f).setDuration(3000)
+        loadButton.alpha=0f ; loadBack.alpha=0f
+        loadButton.translationX=500f ; loadBack.translationX=-500f
+        loadButton.animate().translationX(0f).alpha(1f).setDuration(3000)
+        loadBack.animate().translationX(0f).alpha(1f).setDuration(3000)
 
         //when imageView is clicked photoActivity should open
         imgView.setOnClickListener{
@@ -147,31 +149,44 @@ class GalleryActivity : AppCompatActivity() {
             /*the idea is to open a fullscreen dialog when image is clicked
             the dialog would have layout of photoActivity*/
 
-            //inflate the view of photoActivity
-            val view=layoutInflater.inflate(R.layout.activity_photo,null)
+            if(imgView.drawable != null){
+                //inflate the view of photoActivity
+                val view=layoutInflater.inflate(R.layout.activity_photo,null)
 
-            //image view of the view
-            val photoImg=view.findViewById<ImageView>(R.id.photo)
-            photoImg.setImageBitmap(imgBitmap)
+                //image view of the view
+                val photoImg=view.findViewById<ImageView>(R.id.photo)
+                photoImg.setImageBitmap(imgBitmap)
 
-            //toolbar Textview of the view
-            val toolText=view.findViewById<TextView>(R.id.toolbarText)
-            toolText.text=snapList.get(numOfPics)
+                //toolbar Textview of the view
+                val toolText=view.findViewById<TextView>(R.id.toolbarText)
+                toolText.text=snapList.get(numOfPics)
 
-            //toolbar of view
-            val photoToolbar=view.findViewById<Toolbar>(R.id.photoToolbar)
+                //toolbar of view
+                val photoToolbar=view.findViewById<Toolbar>(R.id.photoToolbar)
 
-            //display alertDialog when image is clicked
-            val photoDialog: AlertDialog=AlertDialog.Builder(this,android.R.style.Theme_DeviceDefault_NoActionBar_Fullscreen)
-                    .setView(view)
-                    .show()
+                //display alertDialog when image is clicked
+                val photoDialog: AlertDialog=AlertDialog.Builder(this,android.R.style.Theme_DeviceDefault_NoActionBar_Fullscreen)
+                        .setView(view)
+                        .show()
 
-            //we can set nav listener in dialog which has layout file containing toolbar with nav icon
-            photoToolbar.setNavigationOnClickListener{
-                photoDialog.dismiss()  //dismiss the dialog when back is clicked on toolbar
+                //we can set nav listener in dialog which has layout file containing toolbar with nav icon
+                photoToolbar.setNavigationOnClickListener{
+                    photoDialog.dismiss()  //dismiss the dialog when back is clicked on toolbar
+                }
+            }
+            else{
+                Toast.makeText(this,"No Image Selected",Toast.LENGTH_SHORT).show()
             }
 
+        }
 
+
+        println("delayyy")
+        println("all snaps=$snapList \n urls=$urls")
+        //show 1st image upon opening
+        setProgressDialog(1) //start loading
+        Timer().schedule(2500){
+            loadImage(numOfPics)
         }
     }
 
@@ -189,46 +204,33 @@ class GalleryActivity : AppCompatActivity() {
 
     //load image using glide
     protected fun loadImage(num: Int) {
-        Glide.with(this@GalleryActivity)
-                .load(urls.get(num))
-                .listener(object : RequestListener<Drawable?> {
-                    override fun onLoadFailed(e: GlideException?, model: Any, target: Target<Drawable?>, isFirstResource: Boolean): Boolean {
-                        setProgressDialog(0)
-                        Toast.makeText(this@GalleryActivity, "failed" + e?.message, Toast.LENGTH_SHORT).show()
-                        return false
-                    }
-
-                    override fun onResourceReady(resource: Drawable?, model: Any, target: Target<Drawable?>, dataSource: DataSource, isFirstResource: Boolean): Boolean {
-                        setProgressDialog(0)
-                        Toast.makeText(this@GalleryActivity, "Image is Loaded", Toast.LENGTH_SHORT).show()
-                        return false
-                    }
-                })
-                .into(imgView)
-        imgView.setBackgroundColor(Color.TRANSPARENT)
-
-        //to save this image as bitmap and transfer to photoActivity
+        //to save this image as bitmap and transfer to alertDialog
         Glide.with(this@GalleryActivity)
                 .asBitmap()
                 .load(urls.get(num))
-                .into(object : CustomTarget<Bitmap>() {
-                    override fun onLoadCleared(placeholder: Drawable?) {
+                .listener(object  : RequestListener<Bitmap?>{
+                    override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Bitmap?>?, isFirstResource: Boolean): Boolean {
+                        setProgressDialog(0)//stop loading
+                        Toast.makeText(applicationContext,"Error Loading Image",Toast.LENGTH_SHORT).show()
+                        return false
 
                     }
+                    override fun onResourceReady(resource: Bitmap?, model: Any?, target: Target<Bitmap?>?, dataSource: DataSource?, isFirstResource: Boolean): Boolean {
+                        setProgressDialog(0)//stop loading
+                        Toast.makeText(applicationContext,"Image Loaded",Toast.LENGTH_SHORT).show()
+                        println("onResReady= $resource")
+                        return false
+                    }
+
+                })
+                .into(object : CustomTarget<Bitmap>() {
+                    override fun onLoadCleared(placeholder: Drawable?) {}
                     override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                        imgBitmap=resource //saved image bitmap
+                        imgBitmap=resource //save image bitmap to load  directly and also load in alertDialog
+                        imgView.setImageBitmap(imgBitmap)
+                        imgView.setBackgroundColor(Color.TRANSPARENT)
                     }
                 })
-
-    }
-
-    override fun onResume() {
-        super.onResume()
-
-        Timer().schedule(3000){
-            println("delayyy")
-            println("all snaps=$snapList \n urls=$urls")
-        }
 
     }
 
@@ -236,12 +238,29 @@ class GalleryActivity : AppCompatActivity() {
     fun loadClicked(view: View){
         numOfPics++
         setProgressDialog(1) //start loading
-        if(!urls.isEmpty() && numOfPics<urls.size)
+        if(!urls.isEmpty() && numOfPics<urls.size){
             loadImage(numOfPics)
+        }
         else {
             setProgressDialog(0)
-            Toast.makeText(applicationContext,"Press again to view from start",Toast.LENGTH_SHORT).show()
-            numOfPics=-1
+            Toast.makeText(applicationContext,"End of Images in this folder",Toast.LENGTH_SHORT).show()
+            numOfPics=urls.size-1
         }
+        println(numOfPics)
+    }
+
+    //when loadBack clicked
+    fun loadBack(view: View){
+        numOfPics--
+        setProgressDialog(1)//start loading
+        if(!urls.isEmpty() && numOfPics>=0){
+            loadImage(numOfPics)
+        }
+        else{
+            setProgressDialog(0)
+            Toast.makeText(applicationContext,"This is the first image",Toast.LENGTH_SHORT).show()
+            numOfPics=0
+        }
+        println(numOfPics)
     }
 }

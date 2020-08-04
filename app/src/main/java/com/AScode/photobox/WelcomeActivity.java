@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -21,7 +20,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.Scroller;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -307,6 +305,7 @@ public class WelcomeActivity extends AppCompatActivity {
         searchNameEditText.setVisibility(View.GONE);
         request.setVisibility(View.GONE);
         searchListView.setVisibility(View.GONE);
+        linkText.setAlpha(0);
 
         //to check if my request is accepted
         isRequestAccepted();
@@ -318,10 +317,11 @@ public class WelcomeActivity extends AppCompatActivity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                String[] split=showLinkedPerson.getText().toString().split(":");
+/*                String[] split=showLinkedPerson.getText().toString().split(":");
                 linkedName=split[1];
-                System.out.println("linkedName is "+linkedName+"length of linkedName="+linkedName.length());
+                System.out.println("linkedName is "+linkedName+"length of linkedName="+linkedName.length());*/
 
+                linkText.setAlpha(1);
                 //add onClickListener for link TextView to make request section visible
                 linkText.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -337,7 +337,7 @@ public class WelcomeActivity extends AppCompatActivity {
                     }
                 });
             }
-        },5000);
+        },2000);
 
         //Listener when text is changed
         searchNameEditText.addTextChangedListener(textWatcher);
@@ -602,6 +602,8 @@ public class WelcomeActivity extends AppCompatActivity {
                     if(myMenu != null)  //to avoid null exception
                         myMenu.findItem(R.id.notifyAccept).setVisible(true);//show menu item of notification
                     showLinkedPerson.setText("You are Linked to: "+requestAcceptMap.get("linkedTo"));
+                    linkedName=requestAcceptMap.get("linkedTo");
+                    System.out.println("linkedName from requestAcceptMap is "+linkedName);
 
                 }
 

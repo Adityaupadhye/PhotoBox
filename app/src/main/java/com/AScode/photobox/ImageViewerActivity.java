@@ -190,7 +190,6 @@ public class ImageViewerActivity extends AppCompatActivity {
 
             }
         },3000);
-
     }
 
     @Override
