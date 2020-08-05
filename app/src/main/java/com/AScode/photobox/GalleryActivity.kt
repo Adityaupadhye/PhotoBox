@@ -30,7 +30,6 @@ class GalleryActivity : AppCompatActivity() {
 
     lateinit var imgView: ImageView
     private var progressDialog: ProgressDialog? = null
-    private var imgViewer: Intent? = null
     private lateinit var linkedUsersRef:DatabaseReference
     private lateinit var snapRef:DatabaseReference
     var myName:String?=null
@@ -43,6 +42,7 @@ class GalleryActivity : AppCompatActivity() {
     private lateinit var loadBack: Button
     private var numOfPics=0
     var imgBitmap:Bitmap?=null
+    var start:Long=0; var end:Long=0
 
     //add snapName and url to arraylist
     fun getURL() {
@@ -55,7 +55,8 @@ class GalleryActivity : AppCompatActivity() {
                         urls.add(snapshot.value.toString())
                         println("snap=$snapList and url=$urls")
                     }
-
+                    end=System.currentTimeMillis()-start
+                    println("end=$end")
                 }
 
                 override fun onCancelled(error: DatabaseError) {}
@@ -101,8 +102,7 @@ class GalleryActivity : AppCompatActivity() {
         loadButton=findViewById(R.id.loadButton)
         loadBack=findViewById(R.id.loadBack)
 
-        //intents
-        imgViewer = Intent(this@GalleryActivity, ImageViewerActivity::class.java)
+        //intents- not required
 
         //progressdialog
         progressDialog = ProgressDialog(this)
@@ -125,6 +125,9 @@ class GalleryActivity : AppCompatActivity() {
         //getting subFolder from Intent
         subFolder=intent.getStringExtra("subFolder")
 
+        //start time
+        start=System.currentTimeMillis()
+
         //get url from DB
         getURL()
 
@@ -132,16 +135,14 @@ class GalleryActivity : AppCompatActivity() {
         val toolbar = findViewById<Toolbar>(R.id.galleryToolbar)
         setSupportActionBar(toolbar)
         toolbar.setNavigationOnClickListener {
-            /*imgViewer?.putExtra("myNameForBack",myName)
-            startActivity(imgViewer)*/
             finish()
         }
 
         //add animation to button to show after 3sec
         loadButton.alpha=0f ; loadBack.alpha=0f
         loadButton.translationX=500f ; loadBack.translationX=-500f
-        loadButton.animate().translationX(0f).alpha(1f).setDuration(3000)
-        loadBack.animate().translationX(0f).alpha(1f).setDuration(3000)
+        loadButton.animate().translationX(0f).alpha(1f).setDuration(1500)
+        loadBack.animate().translationX(0f).alpha(1f).setDuration(1500)
 
         //when imageView is clicked photoActivity should open
         imgView.setOnClickListener{
@@ -185,7 +186,7 @@ class GalleryActivity : AppCompatActivity() {
         println("all snaps=$snapList \n urls=$urls")
         //show 1st image upon opening
         setProgressDialog(1) //start loading
-        Timer().schedule(2500){
+        Timer().schedule(1000){
             loadImage(numOfPics)
         }
     }

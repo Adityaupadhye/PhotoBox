@@ -12,6 +12,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -40,6 +41,7 @@ public class ImageViewerActivity extends AppCompatActivity {
     private Button imgViewButton;
     private Spinner subfolderDropdown;
     private ArrayAdapter<String> subFolderAdapter;
+    private long start,duration=0;
 
 
     //to find correct linkedUserName
@@ -52,6 +54,8 @@ public class ImageViewerActivity extends AppCompatActivity {
                 if(split[0].equals(myName) || split[1].equals(myName)){
                     linkedUserName=snapshot.getKey().trim();
                     System.out.println("linkedName is "+linkedUserName);
+                    duration=System.currentTimeMillis()-start;
+                    System.out.println("end time="+duration);
                 }
 
             }
@@ -76,7 +80,9 @@ public class ImageViewerActivity extends AppCompatActivity {
 
     //to fill subfolders List
     private void fillSubFolders(){
-        linkedUsersRef.child(linkedUserName).child("subfolders").addListenerForSingleValueEvent(new ValueEventListener() {
+        linkedUsersRef.child(linkedUserName)
+                .child("subfolders")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 String subValue;
@@ -91,6 +97,8 @@ public class ImageViewerActivity extends AppCompatActivity {
                     }
 
                 }
+                duration=System.currentTimeMillis()-start;
+                System.out.println("duration of fillSubFolder="+duration);
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
@@ -115,31 +123,33 @@ public class ImageViewerActivity extends AppCompatActivity {
 
         //databaseRef
         linkedUsersRef = FirebaseDatabase.getInstance().getReference().child("linkedUsers");
+
+        //measure time taken
+        start=System.currentTimeMillis();
+        System.out.println("start="+start);
         //add childEventListener to linkedUserRef
         linkedUsersRef.addChildEventListener(linkedUsers);
 
         //getting myName form intent
         myName = getIntent().getStringExtra("myName");
-        /*if (myName == null){
-            //intent is from back of Gallery
-            myName = getIntent().getStringExtra("myNameForBack");
-        }*/
         System.out.println("myName from intent is "+myName);
 
         //animate button until linkedUserName is found
         imgViewButton.setAlpha(0);
-        mainFolderText.setAlpha(0);
-        mainFolderText.animate().alpha(1).setDuration(4000);
 
+        System.out.println("duration in onCreate="+duration);
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 mainFolder=linkedUserName;
                 mainFolderText.setText(mainFolder);
-                imgViewButton.setAlpha(1);
-
+                //to fill subfolderList after linkedName is fetched
+                if(linkedUserName != null)
+                    fillSubFolders();
+                else
+                    Toast.makeText(ImageViewerActivity.this,"try again",Toast.LENGTH_SHORT).show();
             }
-        },3000);
+        },700);
 
         //find toolbar object
         toolbar=findViewById(R.id.toolbar);
@@ -173,8 +183,7 @@ public class ImageViewerActivity extends AppCompatActivity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                //to fill subfolderList
-                fillSubFolders();
+                //set adapter after 2.5secs after list is filled
                 subfolderDropdown.setAdapter(subFolderAdapter);
 
                 // to set itemClickListener for dropdown
@@ -188,8 +197,11 @@ public class ImageViewerActivity extends AppCompatActivity {
                     public void onNothingSelected(AdapterView<?> adapterView) { }
                 });
 
+                //show button
+                imgViewButton.setAlpha(1);
+
             }
-        },3000);
+        },1500);
     }
 
     @Override

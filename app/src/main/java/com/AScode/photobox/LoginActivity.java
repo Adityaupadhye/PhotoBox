@@ -30,6 +30,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.*;
@@ -46,6 +47,7 @@ public class LoginActivity extends AppCompatActivity {
     private GoogleSignInClient mGoogleSignInClient;
     final static int RC_SIGN_IN=2;
     ProgressDialog load; //to show loading
+    DatabaseReference userDB;
 
     //Login button code
     public void userLogin(View view){
@@ -245,6 +247,9 @@ public class LoginActivity extends AppCompatActivity {
         //firebaseAuth
         mAuth=FirebaseAuth.getInstance();
 
+        //user DB
+        userDB=FirebaseDatabase.getInstance().getReference().child("users");
+
         emailText =findViewById(R.id.emailText);
         pswdText=findViewById(R.id.pswdText);
 
@@ -352,12 +357,14 @@ public class LoginActivity extends AppCompatActivity {
                                 loading(0); //dismiss
                                 updateUI(user); //to change activity
 
-                                //setting up a map for key vale pairs to add it into firebase data base
+                                /*//setting up a map for key vale pairs to add it into firebase data base
                                 HashMap<String,String> map=new HashMap<>();
                                 map.put("displayName",user.getDisplayName());
-                                map.put("email", user.getEmail());
-                                //put data into users
-                                FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).setValue(map);
+                                map.put("email", user.getEmail());*/
+
+                                //put data into users map will erease all data already associated with the UID
+                                userDB.child(user.getUid()).child("displayName").setValue(user.getDisplayName());
+                                userDB.child(user.getUid()).child("email").setValue(user.getEmail());
                             }
                             Snackbar.make(findViewById(R.id.layoutLogin),"Successful Login",Snackbar.LENGTH_SHORT).show();
                         } else {

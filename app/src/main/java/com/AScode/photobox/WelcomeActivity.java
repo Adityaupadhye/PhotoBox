@@ -159,8 +159,10 @@ public class WelcomeActivity extends AppCompatActivity {
         viewText.setText("Welcome\n" +myName);
 
         //animation for dialog box
-        dialog.getWindow().getAttributes().windowAnimations=R.style.dialogAnimation;  //view animation in styles.xml>>dialogAnimation
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        if(dialog.getWindow() != null){
+            dialog.getWindow().getAttributes().windowAnimations=R.style.dialogAnimation;  //view animation in styles.xml>>dialogAnimation
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
         dialog.show();
         //dialog.getWindow().setLayout(600,500);
 
@@ -179,38 +181,39 @@ public class WelcomeActivity extends AppCompatActivity {
         AlertDialog delDialog=new AlertDialog.Builder(context)
                 .setTitle("Delete Account")
                 .setIcon(R.drawable.ic_baseline_warning_24)
-                .setMessage("Are you sure you want to delete this Account?")
+                .setMessage("Are you sure you want to delete this Account?\n" +
+                        "You will lose all your data after deleting\n" +
+                        "However your linked person can still access all photos")
                 .setPositiveButton("YES", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         FirebaseUser firebaseUser=FirebaseAuth.getInstance().getCurrentUser();
 
-                        //set progress dialog to show loading
-                        final ProgressDialog progressDialog=new ProgressDialog(context);
-                        progressDialog.setProgressStyle(R.style.Widget_AppCompat_ProgressBar);
-                        progressDialog.setMessage("Loading");
-                        progressDialog.show();
-                        progressDialog.setCanceledOnTouchOutside(false);
+                        showLoading(1); //start loading
 
-                        firebaseUser.delete()
-                                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                        if(task.isSuccessful()){
-                                            Toast.makeText(context,"Account Successfully Deleted",Toast.LENGTH_SHORT).show();
-                                            progressDialog.dismiss();
-                                            startActivity(login);
-                                        }else{
-                                            progressDialog.dismiss();
-                                            Toast.makeText(context,"Precess Failed\nLog IN again before Rquesting Again",Toast.LENGTH_LONG).show();
-                                            System.out.println("failure reason---"+task.getException().toString());
+                        if(firebaseUser != null){
+                            firebaseUser.delete()
+                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if(task.isSuccessful()){
+                                                Toast.makeText(context,"Account Successfully Deleted",Toast.LENGTH_SHORT).show();
+                                                showLoading(0); //stop loading
+                                                startActivity(login);
+                                            }else{
+                                                showLoading(0); //stop loading
+                                                Toast.makeText(context,"Precess Failed\nLog IN again before Rquesting Again",Toast.LENGTH_LONG).show();
+                                                if(task.getException() != null) //null check
+                                                    System.out.println("failure reason---"+task.getException().toString());
+                                            }
                                         }
-                                    }
-                                });
+                                    });
+                        }
                     }
                 })
                 .setNegativeButton("CANCEL",null)
                 .show();
+        delDialog.setCanceledOnTouchOutside(false);
     }
 
     //dialog for confirming and selecting link person
@@ -246,7 +249,9 @@ public class WelcomeActivity extends AppCompatActivity {
         loadingDiaog.setMessage("Sending Request..");
         loadingDiaog.setCancelable(false);
         loadingDiaog.setCanceledOnTouchOutside(false);
-        loadingDiaog.show();
+        if(code == 1){
+            loadingDiaog.show();
+        }
         if(code==0){
             loadingDiaog.dismiss();
         }
@@ -317,9 +322,9 @@ public class WelcomeActivity extends AppCompatActivity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-/*                String[] split=showLinkedPerson.getText().toString().split(":");
-                linkedName=split[1];
-                System.out.println("linkedName is "+linkedName+"length of linkedName="+linkedName.length());*/
+                /*String[] split=showLinkedPerson.getText().toString().split(":");
+                linkedName=split[1];*/
+                System.out.println("linkedName is "+linkedName+" length of linkedName="+linkedName.length());
 
                 linkText.setAlpha(1);
                 //add onClickListener for link TextView to make request section visible
@@ -337,7 +342,7 @@ public class WelcomeActivity extends AppCompatActivity {
                     }
                 });
             }
-        },2000);
+        },3000);
 
         //Listener when text is changed
         searchNameEditText.addTextChangedListener(textWatcher);
@@ -596,18 +601,18 @@ public class WelcomeActivity extends AppCompatActivity {
                 HashMap<String,String> requestAcceptMap=(HashMap<String, String>) snapshot.getValue();
                 System.out.println("in request accepted\t"+snapshot.getValue());
 
-                if(requestAcceptMap.get("linkedTo") != null && requestAcceptMap.get("Link Request sent to") != null && linkedName.isEmpty()){
+                if(requestAcceptMap != null && requestAcceptMap.get("linkedTo") != null && requestAcceptMap.get("Link Request sent to") != null && linkedName.isEmpty()){
                     //yes i have sent a request AND my request is accepted
-                    System.out.println("My request is accepted and i am linked to"+requestAcceptMap.get("linkedTo"));
+                    System.out.println("My request is accepted and i am linked to "+requestAcceptMap.get("linkedTo"));
+
                     if(myMenu != null)  //to avoid null exception
                         myMenu.findItem(R.id.notifyAccept).setVisible(true);//show menu item of notification
-                    showLinkedPerson.setText("You are Linked to: "+requestAcceptMap.get("linkedTo"));
-                    linkedName=requestAcceptMap.get("linkedTo");
-                    System.out.println("linkedName from requestAcceptMap is "+linkedName);
 
+                    showLinkedPerson.setText(String.format("You are Linked to: %s", requestAcceptMap.get("linkedTo")));
                 }
 
-                System.out.println("check if request is sent by me=="+snapshot.getKey().equals("Link Request sent to"));
+                if(snapshot.getKey() != null)  //null check
+                    System.out.println("check if request is sent by me=="+snapshot.getKey().equals("Link Request sent to"));
             }
 
             @Override
@@ -619,28 +624,22 @@ public class WelcomeActivity extends AppCompatActivity {
 
     //to check if my DB has "linkedTo" key
     private void checkIfLinked(){
-        //display linked to in upper text
-        userRef.child(user.getUid()).addChildEventListener(new ChildEventListener() {
+        //display linked to in upper textView
+        userRef.child(user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                if(Objects.equals(snapshot.getKey(), "linkedTo")){
-                    String displayLinkedName=snapshot.getValue().toString();
-                    System.out.println("in checkIfLinked="+displayLinkedName);
-                    showLinkedPerson.setText("You are Linked to: "+displayLinkedName);
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for(DataSnapshot data: snapshot.getChildren()){
+
+                    if(data.getKey() != null && data.getValue() != null){ //null check
+                        //check if linkedTo is present in my DB
+                        if(data.getKey().equals("linkedTo")){
+                            String displayLinkName= data.getValue().toString();
+                            System.out.println("in checkIfLinked valueEventListener---"+displayLinkName);
+                            showLinkedPerson.setText(String.format("You are linked To: %s",displayLinkName));
+                            linkedName=displayLinkName;
+                        }
+                    }
                 }
-
-            }
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-            }
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-            }
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
@@ -659,7 +658,7 @@ public class WelcomeActivity extends AppCompatActivity {
             public void run() {
                 //to check if I got any request
                 //run this after 5sec so that firebase database gets loaded in around 4sec
-                if(checkMes && linkedName.equals(" ")){
+                if(checkMes && linkedName.isEmpty()){
                     System.out.println("checkRequest---message is present");
                         myMenu.findItem(R.id.notify).setVisible(true);
                 }
@@ -667,7 +666,7 @@ public class WelcomeActivity extends AppCompatActivity {
                     System.out.println("request not found");
                 }
             }
-        },5000);
+        },4000);
 
         userRef.child(user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
