@@ -55,6 +55,7 @@ public class WelcomeActivity extends AppCompatActivity {
     protected EditText searchNameEditText;
     Button request;
     ArrayList<String> nameArrayList=new ArrayList<>();
+    ArrayList<String> nameArrayListClone=new ArrayList<>();
     ArrayAdapter<String> nameArrayAdapter;
     ListView searchListView;
     protected HashMap<String,String> userMap=new HashMap<>();//map to store username and email---name=email
@@ -80,24 +81,19 @@ public class WelcomeActivity extends AppCompatActivity {
             System.out.println("map value in onChildAdded---"+userMap);
             System.out.println("UIDmap value in onChildAdded---"+email_uidMap);
 
-            if(!nameArrayList.contains(getName)){
+            if(!nameArrayList.contains(getName) && !getName.equals(myName)){
                 nameArrayList.add(getName);
-
             }
             nameArrayAdapter.notifyDataSetChanged();
             System.out.println("onChildAdded---"+nameArrayList);
 
         }
-
         @Override
         public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) { }
-
         @Override
         public void onChildRemoved(@NonNull DataSnapshot snapshot) {        }
-
         @Override
         public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {        }
-
         @Override
         public void onCancelled(@NonNull DatabaseError error) {        }
 
@@ -114,8 +110,36 @@ public class WelcomeActivity extends AppCompatActivity {
         public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
             System.out.println(charSequence);//just to check
             if(charSequence.length()>0){
-                userRef.addChildEventListener(childEventListener);
-                searchListView.setAdapter(nameArrayAdapter);
+                //nameArrayList is already filled up in onCreate so no need to call it here
+                //clear cloned list before starting
+                nameArrayListClone.clear();
+                int c;
+                boolean isPresent = false;
+
+                System.out.println("total size of nameArrayList= "+nameArrayList.size());//just to check size
+                for(c=0;c<nameArrayList.size();c++){
+                    //to check the arrayList element by element if it contains input charSequence
+                    String listNames=nameArrayList.get(c);
+                    System.out.println(c+" : "+nameArrayList.get(c));
+
+                    //first convert to lowercase then check each value of nameArrayList if it contains charSequence
+                    if(nameArrayList.get(c).toLowerCase().contains(charSequence)){
+
+                        if( !nameArrayListClone.contains(listNames) )
+                            nameArrayListClone.add(listNames);
+
+                        isPresent=true;
+                        System.out.println("arrayList contains this "+isPresent);
+                    }
+                }
+                System.out.println("cloned List= "+nameArrayListClone);
+                if(isPresent)
+                    searchListView.setAdapter(nameArrayAdapter);
+                else{
+                    searchListView.setAdapter(null);
+                    System.out.println("NO matches found");
+                }
+
             }
             else if(charSequence.length()==0){
                 searchListView.setAdapter(null);
@@ -301,7 +325,7 @@ public class WelcomeActivity extends AppCompatActivity {
         viewBtn=findViewById(R.id.viewBtn);
         uploadImgBtn=findViewById(R.id.uploadImg);
 
-        nameArrayAdapter=new ArrayAdapter<>(WelcomeActivity.this,R.layout.mylist,nameArrayList);//to adapt single item listView
+        nameArrayAdapter=new ArrayAdapter<>(WelcomeActivity.this,R.layout.mylist,nameArrayListClone);//to adapt single item listView
 
         //showLinkedPerson.setMovementMethod(new ScrollingMovementMethod());// to scroll textView in scrollView
         showLinkedPerson.setText("You are Linked to: "+linkedName);
@@ -331,7 +355,7 @@ public class WelcomeActivity extends AppCompatActivity {
                 linkText.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        if(linkedName.equals(" ")){
+                        if(linkedName.isEmpty()){
                             searchNameEditText.setVisibility(View.VISIBLE);
                             request.setVisibility(View.VISIBLE);
                             searchListView.setVisibility(View.VISIBLE);
@@ -487,14 +511,9 @@ public class WelcomeActivity extends AppCompatActivity {
                     alreadylinked=false;// reset alreadyLinked so that user can try to link others
                 }
                 else{
-                    //to check if i am not sending myslef a request AND nameArrayList contains the selectedName
-                    if(!Objects.equals(userMap.get(getNameFromSearch), user.getEmail()) && nameArrayList.contains(getNameFromSearch)){
-                        //add a message to requested user's DB message="request from ___"
-
+                    if(nameArrayList.contains(getNameFromSearch)) {
                         DatabaseReference toLinkPerson=userRef.child(Objects.requireNonNull(email_uidMap.get(selectedEmail)));
                         //creating a map for this will delete the existing data and override that with this info
-
-                        toLinkPerson.child("message").setValue("Link Request from: "+myName);//add a messgage to the reciever
                         toLinkPerson.child("RequestFrom").setValue(myName);//add from whom the request is(name)
                         toLinkPerson.child("RequestFromEmail").setValue(userMap.get(myName));//add from whom the request is(email)
 
@@ -518,10 +537,9 @@ public class WelcomeActivity extends AppCompatActivity {
                         searchListView.setVisibility(View.GONE);
                         searchNameEditText.setVisibility(View.GONE);
                         request.setVisibility(View.GONE);
-
-                    }else{
-                        Toast.makeText(WelcomeActivity.this,"Cant send request to yourself",Toast.LENGTH_SHORT).show();
-
+                    }
+                    else{
+                        Toast.makeText(getApplicationContext(),getNameFromSearch+" not Found!!",Toast.LENGTH_SHORT).show();
                     }
                 }
 
