@@ -21,6 +21,8 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.request.transition.Transition
+import com.davemorrissey.labs.subscaleview.ImageSource
+import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.google.firebase.database.*
 import java.util.*
 import kotlin.collections.ArrayList
@@ -155,8 +157,9 @@ class GalleryActivity : AppCompatActivity() {
                 val view=layoutInflater.inflate(R.layout.activity_photo,null)
 
                 //image view of the view
-                val photoImg=view.findViewById<ImageView>(R.id.photo)
-                photoImg.setImageBitmap(imgBitmap)
+                val photoImg=view.findViewById<SubsamplingScaleImageView>(R.id.photo)
+                photoImg.setImage(ImageSource.bitmap(imgBitmap!!))
+                //photoImg.setImageBitmap(imgBitmap)
 
                 //toolbar Textview of the view
                 val toolText=view.findViewById<TextView>(R.id.toolbarText)

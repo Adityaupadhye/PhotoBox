@@ -350,13 +350,15 @@ public class ImageSelectorActivity extends AppCompatActivity {
             }
         });
 
-        //rotate imageView when imageview clicked
-        imageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                imageView.animate().rotationBy(90).setDuration(500);
-            }
-        });
+        if(imageView.getDrawable() != null){
+            //rotate imageView when imageview clicked
+            imageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    imageView.animate().rotationBy(90).setDuration(500);
+                }
+            });
+        }
 
         //set Image to original position
         imageView.setOnLongClickListener(new View.OnLongClickListener() {

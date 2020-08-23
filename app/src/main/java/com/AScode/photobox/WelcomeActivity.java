@@ -177,6 +177,8 @@ public class WelcomeActivity extends AppCompatActivity {
         dialog=new AlertDialog.Builder(this)
                 .setView(dialogView)
                 .create();
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
 
         //view textView
         TextView viewText=dialogView.findViewById(R.id.customTitle);

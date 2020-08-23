@@ -15,20 +15,25 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".GalleryActivity"
-            android:theme="@style/Images" />
+            android:theme="@style/Images"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".ImageViewerActivity"
-            android:theme="@style/Images" />
+            android:theme="@style/Images"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".WelcomeActivity"
-            android:theme="@style/AppThemePicSelector" />
+            android:theme="@style/AppThemePicSelector"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".signUp_Activity"
             android:theme="@style/AppTheme"
-            android:windowSoftInputMode="adjustResize" />
+            android:windowSoftInputMode="adjustResize"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".LoginActivity"
-            android:theme="@style/AppTheme1">
+            android:theme="@style/AppTheme1"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -37,7 +42,8 @@
         </activity>
         <activity
             android:name=".ImageSelectorActivity"
-            android:theme="@style/Images" />
+            android:theme="@style/Images"
+            android:screenOrientation="portrait"/>
     </application>
 
 </manifest>
