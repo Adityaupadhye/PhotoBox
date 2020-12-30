@@ -1,8 +1,10 @@
-package com.AScode.photobox;
+package com.ascode.photobox;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -10,6 +12,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,6 +22,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.ascode.photobox.security.Utils;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -32,13 +37,13 @@ import java.util.TimerTask;
 
 public class ImageViewerActivity extends AppCompatActivity {
     private Toolbar toolbar;
-    private static final String select="Select A subFolder";
+    public static final String select="Select A subFolder";
     String mainFolder="", myName, linkedUserName, selectedSubFolder=select;
     Intent imgSelecter,gallery,welcome;
     private ArrayList<String> subfolders=new ArrayList<>();
     private TextView mainFolderText;
     DatabaseReference linkedUsersRef;
-    private Button imgViewButton;
+    //private Button imgViewButton;
     private Spinner subfolderDropdown;
     private ArrayAdapter<String> subFolderAdapter;
     private long start,duration=0;
@@ -106,15 +111,55 @@ public class ImageViewerActivity extends AppCompatActivity {
         });
     }
 
+    //start gallery view
+    private void startGallery(ArrayList<String> links, String selectedSubFolder){
+        Intent galleryIntent = new Intent(this, GalleryViewActivity.class);
+        galleryIntent.putExtra("imgLinks",links);
+        galleryIntent.putExtra("currentFolder",selectedSubFolder);
+        startActivity(galleryIntent);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_viewer);
 
+        //for loader
+        final RelativeLayout custom= findViewById(R.id.customLoaderLayout);
+
+        //create utils object
+        final Utils utils= new Utils();
+        utils.findMyLinkedFolder();
+
+        //check internet
+        if(new WelcomeActivity().isConnected(getApplicationContext())){
+            //net connected
+            Toast.makeText(getApplicationContext(),"Connected",Toast.LENGTH_SHORT).show();
+        }
+        else{
+            //not connected
+            Toast.makeText(getApplicationContext(),"Not Connected",Toast.LENGTH_LONG).show();
+
+            //snackBar
+            final Snackbar connectionBar=Snackbar.make(findViewById(R.id.WelcomeScroll),"No Internet",Snackbar.LENGTH_INDEFINITE);
+            connectionBar.setAction("RETRY", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    System.out.println("retry done");
+                }
+            });
+            connectionBar.getView().setBackgroundColor(Color.RED);
+            connectionBar.setTextColor(Color.BLACK);
+            connectionBar.show();
+
+            //set btn clicked to null if internet not available
+        }
+
         //views
         subfolderDropdown = findViewById(R.id.spin);
         mainFolderText = findViewById(R.id.mainFolderText);
-        imgViewButton = findViewById(R.id.imgViewBtn);
+        //imgViewButton = findViewById(R.id.imgViewBtn);
+        final Button viewGalleryBtn= findViewById(R.id.viewGalleryBtn);
 
         //intents
         imgSelecter = new Intent(getApplicationContext(), ImageSelectorActivity.class);
@@ -135,21 +180,28 @@ public class ImageViewerActivity extends AppCompatActivity {
         System.out.println("myName from intent is "+myName);
 
         //animate button until linkedUserName is found
-        imgViewButton.setAlpha(0);
+        //imgViewButton.setAlpha(0);
 
         System.out.println("duration in onCreate="+duration);
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
+
+                //checking utils
+                System.out.println("utils--- "+utils.getLinkedUserName());
+
                 mainFolder=linkedUserName;
                 mainFolderText.setText(mainFolder);
                 //to fill subfolderList after linkedName is fetched
                 if(linkedUserName != null)
                     fillSubFolders();
-                else
-                    Toast.makeText(ImageViewerActivity.this,"try again",Toast.LENGTH_SHORT).show();
+                else{
+                    //Toast.makeText(ImageViewerActivity.this,"try again",Toast.LENGTH_SHORT).show();
+                    System.out.println("data not loading");
+                }
+
             }
-        },700);
+        },800);
 
         //find toolbar object
         toolbar=findViewById(R.id.toolbar);
@@ -192,16 +244,37 @@ public class ImageViewerActivity extends AppCompatActivity {
                     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                         selectedSubFolder=subfolderDropdown.getItemAtPosition(i).toString();
                         System.out.println("selectedSubFolder is "+selectedSubFolder);
+                        utils.findAllLinks(selectedSubFolder);  //trying
+
+                        new Timer().schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                final ArrayList<String> imgLinks= utils.getAllLinks();
+                                System.out.println("links from util--- "+imgLinks);
+
+                                //onClickListener
+                                viewGalleryBtn.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        startGallery(imgLinks,selectedSubFolder);
+                                    }
+                                });
+                            }
+                        },1500);
+
+
                     }
                     @Override
                     public void onNothingSelected(AdapterView<?> adapterView) { }
                 });
 
                 //show button
-                imgViewButton.setAlpha(1);
+                //imgViewButton.setAlpha(1);
+                custom.setAlpha(0);
 
             }
         },1500);
+
     }
 
     @Override

@@ -33,19 +33,46 @@
 
     </androidx.appcompat.widget.Toolbar>
 
-    <Button
+<!--    <Button
         android:id="@+id/imgViewBtn"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="399dp"
+        android:layout_marginBottom="140dp"
         android:background="@drawable/login_button"
+        android:elevation="5dp"
+        android:onClick="viewImg"
         android:text="View"
         android:textColor="@color/backgroundAll"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
         android:textSize="18sp"
-        android:onClick="viewImg"/>
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />-->
+
+    <Button
+        android:id="@+id/viewGalleryBtn"
+        android:layout_width="175dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="100dp"
+        android:background="@drawable/login_button"
+        android:text="View Gallery"
+
+        android:textColor="@color/backgroundAll"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <include
+        layout="@layout/custom_loader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="70dp"
+        android:elevation="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/spin" />
 
     <TextView
         android:id="@+id/mainFolderText"

@@ -16,6 +16,8 @@
         <item name="android:windowBackground">@drawable/photobox_icon2_splash</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowActivityTransitions">true</item>
+        <item name="android:windowContentTransitions">true</item>
     </style>
 
     <style name="AppThemePicSelector" parent="Theme.AppCompat.Light">

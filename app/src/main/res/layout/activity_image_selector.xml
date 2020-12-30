@@ -67,7 +67,8 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/spinner" />
+                app:layout_constraintTop_toBottomOf="@+id/spinner"
+                android:elevation="5dp"/>
 
             <Button
                 android:id="@+id/imgUpload"
@@ -82,7 +83,8 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/imageView" />
+                app:layout_constraintTop_toBottomOf="@+id/imageView"
+                android:elevation="5dp"/>
 
             <ImageView
                 android:id="@+id/imageView"
@@ -130,7 +132,8 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/imgUpload" />
+                app:layout_constraintTop_toBottomOf="@+id/imgUpload"
+                android:elevation="5dp"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

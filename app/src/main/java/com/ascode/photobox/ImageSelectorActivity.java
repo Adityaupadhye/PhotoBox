@@ -1,4 +1,4 @@
-package com.AScode.photobox;
+package com.ascode.photobox;
 
 import android.Manifest;
 import android.app.ProgressDialog;
@@ -25,10 +25,12 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.UiThread;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.ascode.photobox.security.Utils;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.snackbar.Snackbar;
@@ -148,7 +150,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
     //upload image to firebase
     public void uploadImage(View view){
 
-        imageName="IMG_"+date+"_"+time;
+        imageName= Utils.Companion.createUniqueImgName();
 
         if(imageView.getDrawable()!=null){
             imageView.setDrawingCacheEnabled(true);
@@ -169,7 +171,6 @@ public class ImageSelectorActivity extends AppCompatActivity {
                 uploadSubFolder="Nothing";
                 uploadTask=ref.putBytes(data);
                 System.out.println(uploadSubFolder);
-
             }
             else{
                 uploadSubFolder="/"+selectedItem_fromDropdown;
@@ -231,6 +232,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
                             Toast.makeText(getApplicationContext(),"Uploaded Successfully",Toast.LENGTH_LONG).show();
                             hideProgressDialog();
                             imageView.setImageBitmap(null);
+                            imageView.setImageDrawable(null);
                         }
                     },1000);
 
@@ -263,6 +265,30 @@ public class ImageSelectorActivity extends AppCompatActivity {
         setContentView(R.layout.activity_image_selector);
         requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},IMG_FOUND);
 
+        //check internet
+        if(new WelcomeActivity().isConnected(getApplicationContext())){
+            //net connected
+            Toast.makeText(getApplicationContext(),"Connected",Toast.LENGTH_SHORT).show();
+        }
+        else{
+            //not connected
+            Toast.makeText(getApplicationContext(),"Not Connected",Toast.LENGTH_LONG).show();
+
+            //snackBar
+            final Snackbar connectionBar=Snackbar.make(findViewById(R.id.WelcomeScroll),"No Internet",Snackbar.LENGTH_INDEFINITE);
+            connectionBar.setAction("RETRY", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    System.out.println("retry done");
+                }
+            });
+            connectionBar.getView().setBackgroundColor(Color.RED);
+            connectionBar.setTextColor(Color.BLACK);
+            connectionBar.show();
+
+            //set btn clicked to null if internet not available
+        }
+
         //assigning firebaseAuth
         mAuth=FirebaseAuth.getInstance();
         user=mAuth.getCurrentUser();
@@ -293,11 +319,14 @@ public class ImageSelectorActivity extends AppCompatActivity {
         //initialize imageView
         imageView=findViewById(R.id.imageView);
 
-        //get current date in string
+/*        //get current date in string
         date=new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date());
         System.out.println("Today's Date= "+date);
         //current time
         time=new SimpleDateFormat("HHmmss",Locale.getDefault()).format(new Date());
+
+        //testing utils fun
+        System.out.println(Utils.Companion.createUniqueImgName());*/
 
         //create a new progress dialog
         progressDialog=new ProgressDialog(ImageSelectorActivity.this);
@@ -322,13 +351,12 @@ public class ImageSelectorActivity extends AppCompatActivity {
             }
         });
 
-        //toobar menu actions
+        //toolbar menu actions
         //always use a toolbar MenuItemClicked method when using menu in toolbar
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()){
-
                     case R.id.signOut: {
                         //for signOut menu item
                         mAuth.signOut();
@@ -337,7 +365,6 @@ public class ImageSelectorActivity extends AppCompatActivity {
                         finish();
                         return true;
                     }
-
                     case R.id.del:{
                         //call delete function from welcomeActivity
                         new WelcomeActivity().deleteAcc(ImageSelectorActivity.this);
@@ -345,7 +372,6 @@ public class ImageSelectorActivity extends AppCompatActivity {
                     }
                     default:
                         return false;
-
                 }
             }
         });

@@ -1,12 +1,9 @@
-package com.AScode.photobox;
+package com.ascode.photobox;
 
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkRequest;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -26,6 +23,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.AuthCredential;
@@ -35,8 +34,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-
-import java.util.*;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -92,7 +89,7 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    //App PIN Dialog box
+/*    //App PIN Dialog box
     protected void securityDialog(){
         //get layout created
         LayoutInflater inflater=getLayoutInflater();
@@ -223,7 +220,7 @@ public class LoginActivity extends AppCompatActivity {
 
         alertDialog.setCancelable(false);
 
-    }
+    }*/
 
     //login using google (starts activity for google sign in)
     public void googleLogin(View view){
@@ -256,11 +253,11 @@ public class LoginActivity extends AppCompatActivity {
         emailText =findViewById(R.id.emailText);
         pswdText=findViewById(R.id.pswdText);
 
-        preferences=getApplicationContext().getSharedPreferences("com.AScode.photobox",Context.MODE_PRIVATE);
+        preferences=getApplicationContext().getSharedPreferences("com.ascode.photobox",Context.MODE_PRIVATE);
         finalPin=preferences.getString("pin","0000");
 
         System.out.println("this is the final pin="+finalPin);
-        securityDialog();
+        //securityDialog();
 
         signUp=findViewById(R.id.textView);
         signUp.setOnClickListener(new View.OnClickListener() {
@@ -288,6 +285,22 @@ public class LoginActivity extends AppCompatActivity {
 
         // Build a GoogleSignInClient with the options specified by gso.
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+
+/*        //test DB
+        System.out.println("adding to db now");
+        FirebaseDatabase.getInstance().getReference().child("test").setValue("hello")
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        System.out.println("faliure= "+e);
+                    }
+                })
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        System.out.println("written to db");
+                    }
+                });*/
 
     }
 
@@ -384,7 +397,6 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
-    
 }
 
 

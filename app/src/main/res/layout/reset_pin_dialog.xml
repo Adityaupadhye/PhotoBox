@@ -13,6 +13,8 @@
         android:inputType="numberPassword"
         android:maxLength="4"
         android:layout_gravity="center"
+        android:textColorHint="@color/yellow"
+        android:textColor="@color/yellow"
         />
 
     <EditText
@@ -25,6 +27,8 @@
         android:inputType="numberPassword"
         android:maxLength="4"
         android:layout_gravity="center"
+        android:textColorHint="@color/yellow"
+        android:textColor="@color/yellow"
         />
 
 

@@ -1,12 +1,12 @@
-package com.AScode.photobox
+package com.ascode.photobox
 
 import android.app.AlertDialog
-import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
@@ -14,6 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import com.ascode.photobox.models.ImageLinks
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -24,6 +25,7 @@ import com.bumptech.glide.request.transition.Transition
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.google.firebase.database.*
+import kotlinx.android.synthetic.main.activity_gallery.*
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
@@ -31,12 +33,12 @@ import kotlin.concurrent.schedule
 class GalleryActivity : AppCompatActivity() {
 
     lateinit var imgView: ImageView
-    private var progressDialog: ProgressDialog? = null
+    //private var progressDialog: ProgressDialog? = null
     private lateinit var linkedUsersRef:DatabaseReference
     private lateinit var snapRef:DatabaseReference
     var myName:String?=null
     var linkedName:String?=null
-    val select="Select A subFolder"
+    private val select="Select A subFolder"
     var subFolder:String?=select
     var snapList=ArrayList<String>()
     var urls=ArrayList<String>()
@@ -46,13 +48,13 @@ class GalleryActivity : AppCompatActivity() {
     var imgBitmap:Bitmap?=null
     var start:Long=0; var end:Long=0
 
-    //add snapName and url to arraylist
-    fun getURL() {
+    //add snapName and url to arrayList
+    private fun getURL() {
         if (subFolder.equals(select)) {
             println("no subfolder Selected")
             snapRef.addChildEventListener(object : ChildEventListener {
                 override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                    if (snapshot.key!!.toString().contains("IMG")){
+                    if (snapshot.key!!.toString().contains("IMG_")){
                         snapList.add(snapshot.key!!)
                         urls.add(snapshot.value.toString())
                         println("snap=$snapList and url=$urls")
@@ -101,13 +103,17 @@ class GalleryActivity : AppCompatActivity() {
 
         //all views
         imgView = findViewById(R.id.loadImg)
-        loadButton=findViewById(R.id.loadButton)
+        loadButton=findViewById(R.id.loadNext)
         loadBack=findViewById(R.id.loadBack)
 
         //intents- not required
 
         //progressdialog
-        progressDialog = ProgressDialog(this)
+        //progressDialog = ProgressDialog(this)
+
+        viewGallery.setOnClickListener{
+            viewGallery()
+        }
 
         //myName from Intent
         myName=intent.getStringExtra("myNameFromIntent")
@@ -119,6 +125,11 @@ class GalleryActivity : AppCompatActivity() {
 
         //DB refs
         linkedUsersRef =FirebaseDatabase.getInstance().reference.child("linkedUsers")
+
+        //for null check
+        linkedName?.let {
+            snapRef=linkedUsersRef.child(linkedName!!).child("snaps")
+        }
         if(linkedName != null)  //null check
             snapRef=linkedUsersRef.child(linkedName!!).child("snaps")
         else
@@ -129,6 +140,19 @@ class GalleryActivity : AppCompatActivity() {
 
         //start time
         start=System.currentTimeMillis()
+
+        //testing new function
+        val imageLinks= ImageLinks()
+        var newUrls= linkedName?.let {
+            subFolder?.let {
+                it1 -> imageLinks.getAllLinks(it, it1)
+            }
+        }
+
+        Timer().schedule(2000){
+            println("new function testing\n $newUrls")
+        }
+
 
         //get url from DB
         getURL()
@@ -141,7 +165,8 @@ class GalleryActivity : AppCompatActivity() {
         }
 
         //add animation to button to show after 3sec
-        loadButton.alpha=0f ; loadBack.alpha=0f
+
+        loadBack.alpha=0f ; loadBack.alpha=0f
         loadButton.translationX=500f ; loadBack.translationX=-500f
         loadButton.animate().translationX(0f).alpha(1f).setDuration(1500)
         loadBack.animate().translationX(0f).alpha(1f).setDuration(1500)
@@ -163,7 +188,7 @@ class GalleryActivity : AppCompatActivity() {
 
                 //toolbar Textview of the view
                 val toolText=view.findViewById<TextView>(R.id.toolbarText)
-                toolText.text=snapList.get(numOfPics)
+                toolText.text= snapList[numOfPics]
 
                 //toolbar of view
                 val photoToolbar=view.findViewById<Toolbar>(R.id.photoToolbar)
@@ -177,13 +202,31 @@ class GalleryActivity : AppCompatActivity() {
                 photoToolbar.setNavigationOnClickListener{
                     photoDialog.dismiss()  //dismiss the dialog when back is clicked on toolbar
                 }
+
+                photoToolbar.inflateMenu(R.menu.img_menu)
+
+                //set menu listener for this layout
+                photoToolbar.setOnMenuItemClickListener(object : Toolbar.OnMenuItemClickListener{
+                    override fun onMenuItemClick(item: MenuItem?): Boolean {
+                        //switch case
+                        when(item?.itemId){
+                            R.id.share ->{
+                                Toast.makeText(this@GalleryActivity,"Selected",Toast.LENGTH_SHORT).show()
+                                shareImg(imgBitmap!!)
+                                return true
+                            }
+                            else -> return false
+                        }
+                    }
+                })
+
+
             }
             else{
                 Toast.makeText(this,"No Image Selected",Toast.LENGTH_SHORT).show()
             }
 
         }
-
 
         println("delayyy")
         println("all snaps=$snapList \n urls=$urls")
@@ -196,13 +239,16 @@ class GalleryActivity : AppCompatActivity() {
 
     //to show loading dialog
     private fun setProgressDialog(code: Int) {
-        progressDialog!!.setProgressStyle(android.R.style.Widget_DeviceDefault_ProgressBar)
-        progressDialog!!.setMessage("Loading")
-        progressDialog!!.setCanceledOnTouchOutside(false)
-        progressDialog!!.setCancelable(false)
-        progressDialog!!.show()
+
+//        progressDialog!!.setProgressStyle(android.R.style.Widget_DeviceDefault_ProgressBar)
+//        progressDialog!!.setMessage("Loading")
+//        progressDialog!!.setCanceledOnTouchOutside(false)
+//        progressDialog!!.setCancelable(false)
+//        progressDialog!!.show()
+        loaderLayout.alpha=1f
         if (code == 0) {
-            progressDialog!!.dismiss()
+            //progressDialog!!.dismiss()
+            loaderLayout.alpha=0f
         }
     }
 
@@ -211,7 +257,7 @@ class GalleryActivity : AppCompatActivity() {
         //to save this image as bitmap and transfer to alertDialog
         Glide.with(this@GalleryActivity)
                 .asBitmap()
-                .load(urls.get(num))
+                .load(urls[num])
                 .listener(object  : RequestListener<Bitmap?>{
                     override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Bitmap?>?, isFirstResource: Boolean): Boolean {
                         setProgressDialog(0)//stop loading
@@ -223,6 +269,7 @@ class GalleryActivity : AppCompatActivity() {
                         setProgressDialog(0)//stop loading
                         Toast.makeText(applicationContext,"Image Loaded",Toast.LENGTH_SHORT).show()
                         println("onResReady= $resource")
+
                         return false
                     }
 
@@ -267,4 +314,42 @@ class GalleryActivity : AppCompatActivity() {
         }
         println(numOfPics)
     }
+
+    //to share imageUrl using intent
+    private fun shareImg(bitmap: Bitmap?){
+        val intent=Intent(Intent.ACTION_SEND)
+        intent.putExtra(Intent.EXTRA_TEXT,"This Image is shared from PhotoBox app "+urls[numOfPics])
+        intent.type="text/plain"
+        val chooser=Intent.createChooser(intent,"Sent from PhotoBox")
+        startActivity(chooser)
+    }
+
+    /*override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+
+        val menuInflater=menuInflater
+        menuInflater.inflate(R.menu.img_menu,menu)
+
+        return super.onCreateOptionsMenu(menu)
+    }*/
+
+    /*override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId){
+            R.id.share ->{
+                Toast.makeText(this,"yesss",Toast.LENGTH_SHORT).show()
+                shareImg(imgBitmap)
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }*/
+
+    private fun addFile(){
+        
+    }
+
+    private fun viewGallery(){
+        val galleryIntent=Intent(this,GalleryViewActivity::class.java)
+        galleryIntent.putExtra("url",urls)
+        startActivity(galleryIntent)
+    }
+
 }

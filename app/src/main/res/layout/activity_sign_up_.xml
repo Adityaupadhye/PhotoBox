@@ -15,6 +15,13 @@
     tools:context=".signUp_Activity"
     >
 
+    <include
+        android:id="@+id/signupLoad"
+        layout="@layout/custom_loader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"/>
+
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="100dp"
@@ -87,7 +94,8 @@
         android:text="@string/create_account"
         android:textAllCaps="false"
         android:textColor="@color/backgroundAll"
-        android:textSize="20sp" />
+        android:textSize="20sp"
+        android:elevation="5dp"/>
 
     <ImageView
         android:layout_width="match_parent"

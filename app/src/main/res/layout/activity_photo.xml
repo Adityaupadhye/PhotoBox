@@ -14,7 +14,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:navigationIcon="@drawable/ic_baseline_arrow_back_24_white">
+        app:navigationIcon="@drawable/ic_baseline_arrow_back_24_white"
+        >
 
         <TextView
             android:id="@+id/toolbarText"
@@ -39,15 +40,13 @@
     <com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
         android:id="@+id/photo"
         android:layout_width="match_parent"
-        android:layout_height="550dp"
-        android:layout_marginTop="16dp"
+        android:layout_height="wrap_content"
+        android:background="@android:color/black"
         android:contentDescription="photoView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/photoToolbar"
-        android:background="@android:color/black"
-        />
+        app:layout_constraintTop_toBottomOf="@+id/photoToolbar" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

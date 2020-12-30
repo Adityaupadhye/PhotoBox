@@ -1,4 +1,4 @@
-package com.AScode.photobox;
+package com.ascode.photobox;
 
 import org.junit.Test;
 

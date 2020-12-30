@@ -1,4 +1,4 @@
-package com.AScode.photobox;
+package com.ascode.photobox;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -6,6 +6,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
@@ -30,7 +32,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -68,6 +72,7 @@ public class WelcomeActivity extends AppCompatActivity {
     boolean alreadylinked=false;// to check if the person is already linked to someone else
     ProgressDialog loadingDiaog;
     private final String error="To View or Upload Images you have to link to a person";
+    boolean isNetworkAvailable=true;
 
     //ChildEvent listener for firebase Database
     ChildEventListener childEventListener=new ChildEventListener() {    //called in TextWatcher which is called in onCreate
@@ -286,7 +291,46 @@ public class WelcomeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
         setContentView(R.layout.activity_welcome);
+
+        //all views
+        linkText=findViewById(R.id.linkTxt);
+        searchNameEditText=findViewById(R.id.searchName);
+        request=findViewById(R.id.requestBtn);
+        showLinkedPerson=findViewById(R.id.showLikedPerson);
+        searchListView=findViewById(R.id.searchListView);
+        viewBtn=findViewById(R.id.viewBtn);
+        uploadImgBtn=findViewById(R.id.uploadImg);
+
+        //check internet connection
+        if(isConnected(WelcomeActivity.this)){
+            //net connected
+            Toast.makeText(WelcomeActivity.this,"Connected",Toast.LENGTH_SHORT).show();
+        }
+        else{
+            //not connected
+            Toast.makeText(WelcomeActivity.this,"Not Connected",Toast.LENGTH_LONG).show();
+
+            isNetworkAvailable=false;
+
+            //snackBar
+            final Snackbar connectionBar=Snackbar.make(findViewById(R.id.WelcomeScroll),"No Internet",Snackbar.LENGTH_INDEFINITE);
+            connectionBar.setAction("RETRY", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    System.out.println("retry done");
+                }
+            });
+            connectionBar.getView().setBackgroundColor(Color.RED);
+            connectionBar.setTextColor(Color.BLACK);
+            connectionBar.show();
+
+            //set btn clicked to null if internet not available
+            viewBtn.setOnClickListener(null);
+            uploadImgBtn.setOnClickListener(null);
+            linkText.setOnClickListener(null);
+        }
 
         //databaseRef
         userRef=FirebaseDatabase.getInstance().getReference().child("users");
@@ -318,15 +362,6 @@ public class WelcomeActivity extends AppCompatActivity {
         //show dialog
         welcomeDialog();
 
-        //assign textViews and Button
-        linkText=findViewById(R.id.linkTxt);
-        searchNameEditText=findViewById(R.id.searchName);
-        request=findViewById(R.id.requestBtn);
-        showLinkedPerson=findViewById(R.id.showLikedPerson);
-        searchListView=findViewById(R.id.searchListView);
-        viewBtn=findViewById(R.id.viewBtn);
-        uploadImgBtn=findViewById(R.id.uploadImg);
-
         nameArrayAdapter=new ArrayAdapter<>(WelcomeActivity.this,R.layout.mylist,nameArrayListClone);//to adapt single item listView
 
         //showLinkedPerson.setMovementMethod(new ScrollingMovementMethod());// to scroll textView in scrollView
@@ -354,19 +389,21 @@ public class WelcomeActivity extends AppCompatActivity {
 
                 linkText.setAlpha(1);
                 //add onClickListener for link TextView to make request section visible
-                linkText.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        if(linkedName.isEmpty()){
-                            searchNameEditText.setVisibility(View.VISIBLE);
-                            request.setVisibility(View.VISIBLE);
-                            searchListView.setVisibility(View.VISIBLE);
-                        }else{
-                            Toast.makeText(WelcomeActivity.this,"You are Already Linked To a Person",Toast.LENGTH_SHORT).show();
-                        }
+                if(isNetworkAvailable) {
+                    linkText.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            if (linkedName.isEmpty()) {
+                                searchNameEditText.setVisibility(View.VISIBLE);
+                                request.setVisibility(View.VISIBLE);
+                                searchListView.setVisibility(View.VISIBLE);
+                            } else {
+                                Toast.makeText(WelcomeActivity.this, "You are Already Linked To a Person", Toast.LENGTH_SHORT).show();
+                            }
 
-                    }
-                });
+                        }
+                    });
+                }
             }
         },3000);
 
@@ -391,6 +428,21 @@ public class WelcomeActivity extends AppCompatActivity {
                 uploadImgBtn.animate().translationX(0).setDuration(1500);
             }
         },2000);
+
+        //to test db
+        System.out.println("dbRef = "+FirebaseDatabase.getInstance().getReference().child("test1").child("test11").setValue("yes"));
+        FirebaseDatabase.getInstance().getReference().child("test").setValue("hello").addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                System.out.println("task completed: "+task );
+
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                System.out.println("task failed: "+e.getMessage());
+            }
+        });
 
     }
 
@@ -644,28 +696,56 @@ public class WelcomeActivity extends AppCompatActivity {
 
     //to check if my DB has "linkedTo" key
     private void checkIfLinked(){
+        System.out.println("inside checking");
         //display linked to in upper textView
-        userRef.child(user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+        userRef.child(user.getUid()).addChildEventListener(new ChildEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for(DataSnapshot data: snapshot.getChildren()){
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                System.out.println("snapshots are: "+snapshot.toString());
+            }
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
-                    if(data.getKey() != null && data.getValue() != null){ //null check
-                        //check if linkedTo is present in my DB
-                        if(data.getKey().equals("linkedTo")){
-                            String displayLinkName= data.getValue().toString();
-                            System.out.println("in checkIfLinked valueEventListener---"+displayLinkName);
-                            showLinkedPerson.setText(String.format("You are linked To: %s",displayLinkName));
-                            linkedName=displayLinkName;
-                        }
-                    }
-                }
+            }
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+            }
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
             }
         });
+        try {
+            userRef.child(user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    System.out.println("inside onDataChange of checking");
+                    for(DataSnapshot data: snapshot.getChildren()){
+
+                        if(data.getKey() != null && data.getValue() != null){ //null check
+                            //check if linkedTo is present in my DB
+                            if(data.getKey().equals("linkedTo")){
+                                String displayLinkName= data.getValue().toString();
+                                System.out.println("in checkIfLinked valueEventListener---"+displayLinkName);
+                                showLinkedPerson.setText(String.format("You are linked To: %s",displayLinkName));
+                                linkedName=displayLinkName;
+                            }
+                        }
+                    }
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -715,6 +795,27 @@ public class WelcomeActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         finish();
+    }
+
+    //to check network available
+    protected boolean isConnected(Context context){
+        ConnectivityManager connectivityManager=(ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo mobile=connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+        NetworkInfo wifi=connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+
+        if(wifi != null && mobile != null){//null check
+            //mobile data
+            //no internet
+            if(wifi.isConnected()){
+                //wifi conneced
+                return true;
+            }
+            else return mobile.isConnected();
+        }else{
+            return false;
+        }
+
     }
 
 }

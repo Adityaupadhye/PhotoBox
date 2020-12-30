@@ -1,4 +1,4 @@
-package com.AScode.photobox;
+package com.ascode.photobox;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -33,14 +35,21 @@ public class signUp_Activity extends AppCompatActivity {
 
     //to show loading
     private void showLoading(int code){
-        load.setProgressStyle(android.R.style.Widget_DeviceDefault_ProgressBar);
+
+        RelativeLayout customSignUp= findViewById(R.id.signupLoad);
+        TextView loadertext= findViewById(R.id.loaderTextView);
+        loadertext.setText("Signing Up.. please wait");
+
+        customSignUp.setAlpha(code);
+
+/*        load.setProgressStyle(android.R.style.Widget_DeviceDefault_ProgressBar);
         load.setMessage("Signing Up.. please wait");
         load.setCanceledOnTouchOutside(false);
         load.setCancelable(false);
         if(code==1)
             load.show();
         else if(code==0)
-            load.dismiss();
+            load.dismiss();*/
     }
 
     //to check password conditions

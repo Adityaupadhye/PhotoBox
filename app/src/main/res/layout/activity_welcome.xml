@@ -32,6 +32,7 @@
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/showLikedPerson"
+            android:elevation="5dp"
             />
 
         <Button
@@ -45,6 +46,7 @@
             android:textAllCaps="false"
             android:textColor="@color/backgroundAll"
             android:textSize="20sp"
+            android:elevation="5dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
@@ -113,6 +115,7 @@
             android:textAllCaps="false"
             android:textColor="@color/backgroundAll"
             android:textSize="20sp"
+            android:elevation="5dp"
             app:layout_constraintBottom_toTopOf="@+id/searchListView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.497"

@@ -15,8 +15,8 @@
         android:hint="@string/pin"
         android:inputType="numberPassword"
         android:textAlignment="center"
-        android:textColorHint="#FFFF18"
-        android:textColor="#FFFF18"
+        android:textColorHint="@color/yellow"
+        android:textColor="@color/yellow"
         android:maxLength="4"/>
 
 </LinearLayout>
