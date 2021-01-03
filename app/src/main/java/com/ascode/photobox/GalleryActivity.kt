@@ -14,7 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import com.ascode.photobox.models.ImageLinks
+import com.ascode.photobox.models.ImageModel
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -142,16 +142,6 @@ class GalleryActivity : AppCompatActivity() {
         start=System.currentTimeMillis()
 
         //testing new function
-        val imageLinks= ImageLinks()
-        var newUrls= linkedName?.let {
-            subFolder?.let {
-                it1 -> imageLinks.getAllLinks(it, it1)
-            }
-        }
-
-        Timer().schedule(2000){
-            println("new function testing\n $newUrls")
-        }
 
 
         //get url from DB

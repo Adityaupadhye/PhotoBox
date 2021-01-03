@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -29,8 +30,10 @@ import androidx.annotation.UiThread;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 
 import com.ascode.photobox.security.Utils;
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.snackbar.Snackbar;
@@ -233,6 +236,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
                             hideProgressDialog();
                             imageView.setImageBitmap(null);
                             imageView.setImageDrawable(null);
+                            imageView.setBackground(ContextCompat.getDrawable(ImageSelectorActivity.this,R.drawable.image_background));
                         }
                     },1000);
 
@@ -509,8 +513,11 @@ public class ImageSelectorActivity extends AppCompatActivity {
             try {
                 Uri selectedImage=data.getData();
                 Bitmap bitmap= MediaStore.Images.Media.getBitmap(this.getContentResolver(),selectedImage);
-                imageView.setImageBitmap(bitmap);
-                imageView.setBackgroundColor(Color.WHITE);
+                Glide.with(ImageSelectorActivity.this)
+                        .load(selectedImage)
+                        .into(imageView);
+                //imageView.setImageBitmap(bitmap);
+                imageView.setBackgroundColor(Color.TRANSPARENT);
             }
             catch (Exception e){
                 e.printStackTrace();

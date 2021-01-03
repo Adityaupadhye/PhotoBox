@@ -14,6 +14,7 @@ import com.ascode.photobox.R
 import com.ascode.photobox.WelcomeActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.FirebaseDatabase
 
 //this class creates the security dialog at start of app
 class SecurityDialogActivity : AppCompatActivity() {
@@ -146,6 +147,14 @@ class SecurityDialogActivity : AppCompatActivity() {
 
     }
 
+    /*//testing func
+    private fun deleteData(){
+        FirebaseDatabase.getInstance().reference.child("test").setValue(null)
+                .addOnCompleteListener {
+            Toast.makeText(this,"deleted",Toast.LENGTH_SHORT).show()
+        }
+    }*/
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_security_dialog)
@@ -158,5 +167,6 @@ class SecurityDialogActivity : AppCompatActivity() {
 
         sharedPreferences=applicationContext.getSharedPreferences("com.ascode.photobox", Context.MODE_PRIVATE)
         finalPin=sharedPreferences?.getString("pin","0000")
+
     }
 }

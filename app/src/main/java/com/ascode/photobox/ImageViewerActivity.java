@@ -100,7 +100,6 @@ public class ImageViewerActivity extends AppCompatActivity {
                             subFolderAdapter.notifyDataSetChanged();
                         }
                     }
-
                 }
                 duration=System.currentTimeMillis()-start;
                 System.out.println("duration of fillSubFolder="+duration);
@@ -112,10 +111,12 @@ public class ImageViewerActivity extends AppCompatActivity {
     }
 
     //start gallery view
-    private void startGallery(ArrayList<String> links, String selectedSubFolder){
+    private void startGallery(ArrayList<String> links,ArrayList<String> imgNames, String selectedSubFolder){
         Intent galleryIntent = new Intent(this, GalleryViewActivity.class);
         galleryIntent.putExtra("imgLinks",links);
+        galleryIntent.putExtra("imgNames",imgNames);
         galleryIntent.putExtra("currentFolder",selectedSubFolder);
+        galleryIntent.putExtra("linkedFolder",linkedUserName);
         startActivity(galleryIntent);
     }
 
@@ -188,7 +189,7 @@ public class ImageViewerActivity extends AppCompatActivity {
             public void run() {
 
                 //checking utils
-                System.out.println("utils--- "+utils.getLinkedUserName());
+                System.out.println("utils--- "+Utils.Companion.getLinkedUserName());
 
                 mainFolder=linkedUserName;
                 mainFolderText.setText(mainFolder);
@@ -250,13 +251,14 @@ public class ImageViewerActivity extends AppCompatActivity {
                             @Override
                             public void run() {
                                 final ArrayList<String> imgLinks= utils.getAllLinks();
+                                final ArrayList<String> imgNames= utils.getImgNames();
                                 System.out.println("links from util--- "+imgLinks);
 
                                 //onClickListener
                                 viewGalleryBtn.setOnClickListener(new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {
-                                        startGallery(imgLinks,selectedSubFolder);
+                                        startGallery(imgLinks,imgNames,selectedSubFolder);
                                     }
                                 });
                             }

@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.ascode.photobox.R;
+import com.ascode.photobox.security.Utils;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
@@ -25,23 +26,33 @@ import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Handler;
 
-public class MyAdapter extends RecyclerView.Adapter<MyViewHolder> {
+public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
 
-    ArrayList<String> urls;
     Context context;
+    ArrayList<String> urls;
+    ArrayList<String> names;
+    String subfolder;
+    String linkedFolder;
+    GalleryViewClickListener clickListener;
 
     public MyAdapter(){
 
     }
 
-    public MyAdapter(Context context,ArrayList<String> urls) {
-        this.urls = urls;
+    public MyAdapter(Context context,ArrayList<String> urls, ArrayList<String> names,String subfolder, String linkedFolder
+                        ,GalleryViewClickListener clickListener) {
         this.context = context;
+        this.urls = urls;
+        this.names=names;
+        this.subfolder=subfolder;
+        this.linkedFolder=linkedFolder;
+        this.clickListener=clickListener;
     }
 
     @NonNull
@@ -58,13 +69,27 @@ public class MyAdapter extends RecyclerView.Adapter<MyViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, final int position) {
         loadImg(position,holder);   //loads image
-        holder.imageView.setOnClickListener(new View.OnClickListener() {
+
+        /*holder.imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //Toast.makeText(context,position+" clicked",Toast.LENGTH_SHORT).show();
                 openDialog(position);
             }
         });
+
+
+        //delete img on longclick
+        holder.imageView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+
+                //show delete dialog
+               new Utils().showDeleteDialog(context,names.get(position),subfolder,linkedFolder);
+
+                return false;
+            }
+        })*/;
     }
 
     @Override
@@ -100,7 +125,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyViewHolder> {
                 .into(viewHolder.imageView);
     }
 
-    //opens the full screen dialog
+/*    //opens the full screen dialog
     private void openDialog(final int pos){
 
         final View photoDialog = LayoutInflater.from(context)
@@ -128,19 +153,35 @@ public class MyAdapter extends RecyclerView.Adapter<MyViewHolder> {
                 System.out.println("clicked");
             }
         });
-    }
-}
+    }*/
 
-class MyViewHolder extends RecyclerView.ViewHolder{
 
-    ImageView imageView;
-    ProgressBar loader;
+    class MyViewHolder extends RecyclerView.ViewHolder{
 
-    public MyViewHolder(@NonNull View itemView) {
-        super(itemView);
+        ImageView imageView;
+        ProgressBar loader;
 
-        imageView=itemView.findViewById(R.id.pic);
-        loader=itemView.findViewById(R.id.picLoader);
+        public MyViewHolder(@NonNull View itemView) {
+            super(itemView);
 
+            imageView=itemView.findViewById(R.id.pic);
+            loader=itemView.findViewById(R.id.picLoader);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    clickListener.onItemClick(getAdapterPosition());
+                }
+            });
+
+            itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    clickListener.onItemLongClick(getAdapterPosition());
+                    return true;
+                }
+            });
+
+        }
     }
 }

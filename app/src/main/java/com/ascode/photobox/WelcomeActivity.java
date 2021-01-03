@@ -31,6 +31,8 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.ascode.photobox.models.User;
+import com.ascode.photobox.models.UserModel;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
@@ -47,6 +49,8 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class WelcomeActivity extends AppCompatActivity {
 
@@ -332,6 +336,15 @@ public class WelcomeActivity extends AppCompatActivity {
             linkText.setOnClickListener(null);
         }
 
+        //for testing
+        final ArrayList<User> users= new UserModel().getAllUsers();
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("user list "+users);
+            }
+        },3000);
+
         //databaseRef
         userRef=FirebaseDatabase.getInstance().getReference().child("users");
         //firebase auth
@@ -516,6 +529,7 @@ public class WelcomeActivity extends AppCompatActivity {
 
     }
 
+    //to check is particular user is already linked
     private void isAlreadyLinked(){
         String linkUID=email_uidMap.get(selectedEmail);  //to get UID of that person by using selectedEmail
         System.out.println("linkUID is "+linkUID);
@@ -606,12 +620,12 @@ public class WelcomeActivity extends AppCompatActivity {
     private boolean checkRequest(){
 
         System.out.println("before listener="+checkMes);//to check
-        //to check if message is present in my user's child
+        //to check if RequestFrom is present in my user's child
         userRef.child(user.getUid()).addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
                 System.out.println("keys of child---"+snapshot.getKey());
-                if(Objects.equals(snapshot.getKey(), "message")){
+                if(Objects.equals(snapshot.getKey(), "RequestFrom")){
                     checkMes=true;
                     System.out.println(checkMes);
                 }
