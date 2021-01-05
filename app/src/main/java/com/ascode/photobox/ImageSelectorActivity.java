@@ -76,7 +76,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
    String imageName;
    private DatabaseReference linkedUsersRef;
    private HashMap<String,String> userMapISA,email_UIDMapISA;//to get hashmaps from WelActivity i have used intent Extras
-   private final static String select="Select a subFolder";
+   //private final static String select="Select a subFolder";
 
     // add subFolders from DB to stringList
     ChildEventListener getSubfolderListener=new ChildEventListener() {
@@ -169,22 +169,20 @@ public class ImageSelectorActivity extends AppCompatActivity {
 
             //create a subfolder String for final upload in it
             String uploadSubFolder;
-            if(selectedItem_fromDropdown == null || selectedItem_fromDropdown.equals(select)){
+            if(selectedItem_fromDropdown == null || selectedItem_fromDropdown.equals(Utils.Companion.getSelect())){
                 ref=storage.getReference().child(linkedName.trim()).child(imageName);
                 uploadSubFolder="Nothing";
-                uploadTask=ref.putBytes(data);
-                System.out.println(uploadSubFolder);
             }
             else{
                 uploadSubFolder="/"+selectedItem_fromDropdown;
                 //actual upload
                 //every image has different name using name as date and time
                 ref=storage.getReference().child(linkedName.trim()).child(uploadSubFolder).child(imageName);
-                uploadTask=ref.putBytes(data);
                 //folder name is myName=user's display name
-                System.out.println(uploadSubFolder);
 
             }
+            uploadTask=ref.putBytes(data);
+            System.out.println(uploadSubFolder);
 
             //check uploadSubFOlder
             System.out.println("final SubFolder---"+uploadSubFolder);
@@ -211,7 +209,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
                             System.out.println("downloadUrl="+downloadURL);
 
                             //store snap names with download url
-                            if(selectedItem_fromDropdown.equals(select)){
+                            if(selectedItem_fromDropdown.equals(Utils.Companion.getSelect())){
                                 linkedUsersRef.child(linkedName).child("snaps").child(imageName).setValue(downloadURL);
                             }else{
                                 linkedUsersRef.child(linkedName).child("snaps")
@@ -293,11 +291,14 @@ public class ImageSelectorActivity extends AppCompatActivity {
             //set btn clicked to null if internet not available
         }
 
-        //assigning firebaseAuth
+        //get myName from intent
+        myName=getIntent().getStringExtra("myNameFromIntent");
+
+        /*//assigning firebaseAuth
         mAuth=FirebaseAuth.getInstance();
         user=mAuth.getCurrentUser();
         if(user != null)
-            myName=user.getDisplayName();
+            myName=user.getDisplayName();*/
         System.out.println("display name: "+myName);
 
         //Snackbar
@@ -323,7 +324,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
         //initialize imageView
         imageView=findViewById(R.id.imageView);
 
-/*        //get current date in string
+    /*  //get current date in string
         date=new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date());
         System.out.println("Today's Date= "+date);
         //current time
@@ -355,7 +356,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
             }
         });
 
-        //toolbar menu actions
+        /*//toolbar menu actions
         //always use a toolbar MenuItemClicked method when using menu in toolbar
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
@@ -378,8 +379,9 @@ public class ImageSelectorActivity extends AppCompatActivity {
                         return false;
                 }
             }
-        });
+        });*/
 
+        /*ImageView rotation code
         if(imageView.getDrawable() != null){
             //rotate imageView when imageview clicked
             imageView.setOnClickListener(new View.OnClickListener() {
@@ -407,7 +409,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
                 alertDialog.setCancelable(false);
                 return false;
             }
-        });
+        });*/
 
         //here this is used to get linkedName
         linkedUsersRef.addListenerForSingleValueEvent(pushSubFolder);
@@ -423,7 +425,7 @@ public class ImageSelectorActivity extends AppCompatActivity {
 
 
         if(stringList.isEmpty())
-            stringList.add(select);
+            stringList.add(Utils.Companion.getSelect());
 
         //set Adapter for dropdown
         ArrayAdapter<String> stringArrayAdapter=new ArrayAdapter<>(ImageSelectorActivity.this,R.layout.spinner_layout,stringList);
@@ -527,17 +529,10 @@ public class ImageSelectorActivity extends AppCompatActivity {
 
     }
 
-    //create menu in activity
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-
-        MenuInflater menuInflater=getMenuInflater();
-        menuInflater.inflate(R.menu.menu,menu);
-
-        menu.findItem(R.id.notify).setVisible(false);
-        menu.findItem(R.id.notifyAccept).setVisible(false);
-
-        return super.onCreateOptionsMenu(menu);
+    protected void onDestroy() {
+        super.onDestroy();
+        linkedUsersRef.removeEventListener(pushSubFolder);
+        linkedUsersRef.removeEventListener(getSubfolderListener);
     }
-
 }

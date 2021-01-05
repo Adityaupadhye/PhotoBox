@@ -155,7 +155,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
         });
     }*/
 
-
     class MyViewHolder extends RecyclerView.ViewHolder{
 
         ImageView imageView;

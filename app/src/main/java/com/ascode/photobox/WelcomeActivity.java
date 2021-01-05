@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -222,7 +223,7 @@ public class WelcomeActivity extends AppCompatActivity {
                 .setPositiveButton("YES", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        FirebaseUser firebaseUser=FirebaseAuth.getInstance().getCurrentUser();
+                        final FirebaseUser firebaseUser=FirebaseAuth.getInstance().getCurrentUser();
 
                         showLoading(1); //start loading
 
@@ -232,6 +233,7 @@ public class WelcomeActivity extends AppCompatActivity {
                                         @Override
                                         public void onComplete(@NonNull Task<Void> task) {
                                             if(task.isSuccessful()){
+                                                userRef.child(firebaseUser.getUid()).child("delete").setValue(null);
                                                 Toast.makeText(context,"Account Successfully Deleted",Toast.LENGTH_SHORT).show();
                                                 showLoading(0); //stop loading
                                                 startActivity(login);
@@ -369,8 +371,8 @@ public class WelcomeActivity extends AppCompatActivity {
             myName=getIntent().getStringExtra("nameFromSignUp");
 
         ActionBar bar=getSupportActionBar();
-        assert bar != null;
-        bar.setTitle("Welcome "+myName);
+        if(bar!=null)
+            bar.setTitle("Welcome "+myName);
 
         //show dialog
         welcomeDialog();
@@ -476,11 +478,9 @@ public class WelcomeActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
         switch (item.getItemId()) {
-            case R.id.signOut:{  //if signout option is selected from menu
-                mAuth.signOut();
-                Toast.makeText(getApplicationContext(), "Logged Out successfully", Toast.LENGTH_LONG).show();
-                startActivity(login);
-                finish();
+            case R.id.signOut:{
+                //if signOut option is selected from menu
+                signOutDialog(WelcomeActivity.this);
                 return true;
             }
             case R.id.del:{
@@ -497,6 +497,32 @@ public class WelcomeActivity extends AppCompatActivity {
             }
             default: return super.onOptionsItemSelected(item);
         }
+    }
+
+    //to signout
+    private void signOutDialog(Context context){
+        AlertDialog dialog = new AlertDialog.Builder(context)
+                .setTitle("Confirm Sign Out")
+                .setMessage("Do you want to sign out?")
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mAuth.signOut();
+                        Toast.makeText(getApplicationContext(), "Logged Out successfully", Toast.LENGTH_LONG).show();
+                        startActivity(login);
+                        finish();
+                    }
+                })
+                .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                })
+                .show();
+
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
     }
 
     //view button action
@@ -519,6 +545,7 @@ public class WelcomeActivity extends AppCompatActivity {
         if(linkedName.length()>1){
             imgSelecter.putExtra("userMap",userMap);
             imgSelecter.putExtra("emailUIDMap",email_uidMap);
+            imgSelecter.putExtra("myNameFromIntent",myName);
             startActivity(imgSelecter);
             overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
         }
@@ -831,5 +858,6 @@ public class WelcomeActivity extends AppCompatActivity {
         }
 
     }
+
 
 }

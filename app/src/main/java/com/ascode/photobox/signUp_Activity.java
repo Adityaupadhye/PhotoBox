@@ -13,6 +13,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.ascode.photobox.models.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -20,6 +21,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
 import java.util.regex.Pattern;
@@ -30,14 +32,14 @@ public class signUp_Activity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private String name,email,pswd="",re_pswd;
     private Intent welcome;
-    private ProgressDialog load;
+    //private ProgressDialog load;
     private boolean isEmailCorrect,isPswdCorrect;
 
     //to show loading
     private void showLoading(int code){
 
         RelativeLayout customSignUp= findViewById(R.id.signupLoad);
-        TextView loadertext= findViewById(R.id.loaderTextView);
+        TextView loadertext= customSignUp.findViewById(R.id.loaderTextView);
         loadertext.setText("Signing Up.. please wait");
 
         customSignUp.setAlpha(code);
@@ -75,6 +77,9 @@ public class signUp_Activity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up_);
 
+        //stop loading
+        showLoading(0);
+
         //initialize editTexts in onCreate only
         nameText=findViewById(R.id.name);
         emailText=findViewById(R.id.email);
@@ -88,7 +93,7 @@ public class signUp_Activity extends AppCompatActivity {
         welcome=new Intent(getApplicationContext(),WelcomeActivity.class);
 
         //progressDialog
-        load=new ProgressDialog(signUp_Activity.this);
+        //load=new ProgressDialog(signUp_Activity.this);
 
         //check password when pswdText loses focus
         pswdText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -170,13 +175,7 @@ public class signUp_Activity extends AppCompatActivity {
                                             });
 
                                     //setting up a map for key vale pairs to add it into firebase data base
-                                    HashMap<String, String> map = new HashMap<>();
-                                    map.put("displayName", name);
-                                    map.put("email", user.getEmail());
-                                    System.out.println("map---"+map);
-                                    //put data into users
-                                    FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).setValue(map);
-                                    System.out.println("Upadted to database");
+                                    addToDB(user.getUid());
                                 }
                                 showLoading(0); //dismiss
                                 updateUI_signUp(user);
@@ -217,6 +216,31 @@ public class signUp_Activity extends AppCompatActivity {
         }else{
             Toast.makeText(getApplicationContext(),"User Not created",Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void addToDB(String uid){
+        HashMap<String, String> map = new HashMap<>();
+        map.put("displayName", name);
+        map.put("email", email);
+        System.out.println("map---"+map);
+        //put data into users
+        FirebaseDatabase.getInstance().getReference().child("users").child(uid).setValue(map);
+        System.out.println("Upadted to database");
+
+        /*FirebaseFirestore.getInstance().collection("users")
+                .document(uid)
+                .set(map)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            System.out.println("firestore write complete");
+                        }
+                        else{
+                            System.out.println(task.getException().getMessage());
+                        }
+                    }
+                });*/
     }
 
 }

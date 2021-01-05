@@ -18,15 +18,16 @@ import kotlin.concurrent.schedule
 
 class Utils: ChildEventListener {
 
-    public var myName=FirebaseAuth.getInstance().currentUser?.displayName
+    var myName=FirebaseAuth.getInstance().currentUser?.displayName
     private var code=0
     private var subFolder: String?= null
-    public var allLinks= ArrayList<String>()
+    var allLinks= ArrayList<String>()
     private var mySnaps: DatabaseReference=FirebaseDatabase.getInstance().reference
-    public val imgNames=ArrayList<String>()
-
+    val imgNames=ArrayList<String>()
 
     companion object {
+
+        public final val select="Select A subFolder"
 
         public var linkedUserName:String?=null
         public fun createUniqueImgName(): String {
@@ -39,71 +40,13 @@ class Utils: ChildEventListener {
         }
     }
 
-    public fun showDeleteDialog(context: Context, imgName: String,subfolder: String, linkedFolder: String) {
-
-        val dialog = AlertDialog.Builder(context)
-                .setTitle("Are you sure you want to delete?")
-                .setMessage("You wont be able to recover this Image")
-                .setIcon(R.drawable.ic_baseline_warning_24)
-                .setPositiveButton("YES", DialogInterface.OnClickListener { _, _ ->
-                    if (imgName.isNotEmpty()){
-
-                        //delete from DB
-                        //to find correct mysnapRef here
-                        println("linkedFolder=$linkedFolder")
-
-                        //DB reference
-                        val myLinkedFolder= FirebaseDatabase.getInstance().reference
-                                .child("linkedUsers").child(linkedFolder)
-                        //storage reference
-                        var thisImgStorageRef=FirebaseStorage.getInstance().reference.child(linkedFolder)
-
-                        if(subfolder.equals(ImageViewerActivity.select)){
-                            mySnaps=myLinkedFolder.child("snaps")
-                            thisImgStorageRef=thisImgStorageRef.child(imgName)
-                        }
-                        else{
-                            mySnaps=myLinkedFolder.child("snaps").child(subfolder)
-                            thisImgStorageRef=thisImgStorageRef.child(subfolder).child(imgName)
-                        }
-                        println("dbref onDelete=$mySnaps and imgName=$imgName")
-                        mySnaps.child(imgName).removeValue().addOnCompleteListener{ task->
-                            if(task.isSuccessful){
-                                Toast.makeText(context,"Image deleted",Toast.LENGTH_SHORT).show()
-                            }else{
-                                Toast.makeText(context,task.exception?.message,Toast.LENGTH_SHORT).show()
-                            }
-                        }
-
-                        //delete from Firebase Storage
-                        thisImgStorageRef.delete().addOnCompleteListener{task->
-                            if(task.isSuccessful) {
-                                Toast.makeText(context, "Image deleted from storage", Toast.LENGTH_SHORT).show()
-                            }
-                            else
-                                Toast.makeText(context,task.exception?.message,Toast.LENGTH_SHORT).show()
-                        }
-
-                    }else{
-                        Toast.makeText(context,"No ImageName given",Toast.LENGTH_LONG).show()
-                    }
-
-                })
-                .setNegativeButton("NO", DialogInterface.OnClickListener { dialog, which ->
-                    dialog.dismiss()
-                })
-                .show()
-
-        dialog.setCanceledOnTouchOutside(false)
-    }
-
-    public fun findMyLinkedFolder(){
+    fun findMyLinkedFolder(){
         code=0
         FirebaseDatabase.getInstance().reference.child("linkedUsers")
                 .addChildEventListener(this)
     }
 
-    public fun findAllLinks(subfolder: String){
+    fun findAllLinks(subfolder: String){
 
         val myLinkedFolder= FirebaseDatabase.getInstance().reference.child("linkedUsers").child(linkedUserName!!)
 
@@ -114,7 +57,7 @@ class Utils: ChildEventListener {
         Timer().schedule(10){
             println("called this timer")
             allLinks.clear()
-            if(subfolder.equals(ImageViewerActivity.select)){
+            if(subfolder.equals(Utils.select)){
                 mySnaps=myLinkedFolder.child("snaps")
                 mySnaps.addChildEventListener(this@Utils)
             }

@@ -2,13 +2,14 @@ package com.ascode.photobox
 
 import android.app.AlertDialog
 import android.content.Context
-import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
@@ -16,10 +17,12 @@ import com.ascode.photobox.adapters.GalleryViewClickListener
 import com.ascode.photobox.adapters.MyAdapter
 import com.ascode.photobox.adapters.ViewPagerAdapter
 import com.ascode.photobox.security.Utils
+import com.bumptech.glide.util.Util
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_gallery_view.*
-import kotlinx.android.synthetic.main.create_sub_folder_dialog.view.*
+import kotlinx.android.synthetic.main.activity_sign_up_.*
+import kotlinx.android.synthetic.main.view_pager_item.*
 import java.util.*
 
 class GalleryViewActivity : AppCompatActivity() , GalleryViewClickListener{
@@ -54,7 +57,7 @@ class GalleryViewActivity : AppCompatActivity() , GalleryViewClickListener{
         //notify adapter when child is removed from correct location
         location=FirebaseDatabase.getInstance().reference
                 .child("linkedUsers").child(linkedFolder).child("snaps")
-        if(!currentFolder.equals(ImageViewerActivity.select)) {
+        if(!currentFolder.equals(Utils.select)) {
             location=location.child(currentFolder)
         }
 
@@ -81,12 +84,14 @@ class GalleryViewActivity : AppCompatActivity() , GalleryViewClickListener{
 
     }
 
+    //recyclerview onItemClick
     override fun onItemClick(position: Int) {
         println("listener working")
         openDialog(position)
         //Toast.makeText(this, "new onclickListener", Toast.LENGTH_LONG).show()
     }
 
+    //recyclerView onItemLongCLick
     override fun onItemLongClick(position: Int) {
         //delete img on longClick
         showDeleteDialog(this,names.get(position),position)
@@ -96,19 +101,20 @@ class GalleryViewActivity : AppCompatActivity() , GalleryViewClickListener{
     private fun openDialog(pos: Int) {
         val photoDialog = LayoutInflater.from(this)
                 .inflate(R.layout.photo_dialog_view, null)
+
         val pager2: ViewPager2 = photoDialog.findViewById(R.id.imgSlider)
-        val viewPagerAdapter = ViewPagerAdapter(photoDialog.context, links, pos)
+        val photoViewDialog = AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_NoActionBar_Fullscreen)
+                .setView(photoDialog)
+                .create()
+
+        val viewPagerAdapter = ViewPagerAdapter(photoDialog.context, links,names,photoViewDialog)
         pager2.post { //to display the selected image by changing the default start of viewpager
             pager2.setCurrentItem(pos, false)
         }
         pager2.adapter = viewPagerAdapter
-        val photoViewDialog = android.app.AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_NoActionBar_Fullscreen)
-                .setView(photoDialog)
-                .show()
-        photoDialog.findViewById<View>(R.id.backImg).setOnClickListener {
-            photoViewDialog.dismiss()
-            println("clicked")
-        }
+
+        photoViewDialog.show()
+
     }
 
     //deletes specific image
@@ -133,7 +139,7 @@ class GalleryViewActivity : AppCompatActivity() , GalleryViewClickListener{
                         //exact snapRef
                         val mySnaps: DatabaseReference
 
-                        if (currentFolder.equals(ImageViewerActivity.select)) {
+                        if (currentFolder.equals(Utils.select)) {
                             mySnaps = myLinkedFolder.child("snaps")
                             thisImgStorageRef = thisImgStorageRef.child(imgName)
                         } else {

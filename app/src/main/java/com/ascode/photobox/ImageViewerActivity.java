@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -36,9 +35,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class ImageViewerActivity extends AppCompatActivity {
-    private Toolbar toolbar;
-    public static final String select="Select A subFolder";
-    String mainFolder="", myName, linkedUserName, selectedSubFolder=select;
+    //public static final String select="Select A subFolder";
+    String mainFolder="", myName, linkedUserName, selectedSubFolder=Utils.Companion.getSelect();
     Intent imgSelecter,gallery,welcome;
     private ArrayList<String> subfolders=new ArrayList<>();
     private TextView mainFolderText;
@@ -205,7 +203,7 @@ public class ImageViewerActivity extends AppCompatActivity {
         },800);
 
         //find toolbar object
-        toolbar=findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         this.setSupportActionBar(toolbar);
 
         //toolbar menu options
@@ -231,7 +229,7 @@ public class ImageViewerActivity extends AppCompatActivity {
 
         //arraylist and adapter
         subFolderAdapter=new ArrayAdapter<>(ImageViewerActivity.this,R.layout.spinner_layout,subfolders);
-        subfolders.add(select);// to add this when nothing is added
+        subfolders.add(Utils.Companion.getSelect());// to add this when nothing is added
 
         new Handler().postDelayed(new Runnable() {
             @Override
