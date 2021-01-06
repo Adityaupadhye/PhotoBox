@@ -63,6 +63,8 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/photoDialogToolbar"
-        android:contentDescription="@string/selectedimage" />
+        android:contentDescription="@string/selectedimage"
+        android:scaleType="fitCenter"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

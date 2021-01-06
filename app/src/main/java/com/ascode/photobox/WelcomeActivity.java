@@ -23,6 +23,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -75,7 +76,8 @@ public class WelcomeActivity extends AppCompatActivity {
     String fromName,fromEmail;
     Button viewBtn,uploadImgBtn;
     boolean alreadylinked=false;// to check if the person is already linked to someone else
-    ProgressDialog loadingDiaog;
+    //ProgressDialog loadingDiaog;
+    AlertDialog loaderDialog;
     private final String error="To View or Upload Images you have to link to a person";
     boolean isNetworkAvailable=true;
 
@@ -225,7 +227,7 @@ public class WelcomeActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialogInterface, int i) {
                         final FirebaseUser firebaseUser=FirebaseAuth.getInstance().getCurrentUser();
 
-                        showLoading(1); //start loading
+                        showLoading(1,"Deleting account please wait..."); //start loading
 
                         if(firebaseUser != null){
                             firebaseUser.delete()
@@ -235,10 +237,10 @@ public class WelcomeActivity extends AppCompatActivity {
                                             if(task.isSuccessful()){
                                                 userRef.child(firebaseUser.getUid()).child("delete").setValue(null);
                                                 Toast.makeText(context,"Account Successfully Deleted",Toast.LENGTH_SHORT).show();
-                                                showLoading(0); //stop loading
+                                                showLoading(0,null); //stop loading
                                                 startActivity(login);
                                             }else{
-                                                showLoading(0); //stop loading
+                                                showLoading(0,null); //stop loading
                                                 Toast.makeText(context,"Precess Failed\nLog IN again before Rquesting Again",Toast.LENGTH_LONG).show();
                                                 if(task.getException() != null) //null check
                                                     System.out.println("failure reason---"+task.getException().toString());
@@ -281,8 +283,8 @@ public class WelcomeActivity extends AppCompatActivity {
     }
 
     //to show loading whenever needed
-    protected void showLoading(int code){
-        loadingDiaog.setProgressStyle(android.R.style.Widget_DeviceDefault_ProgressBar);
+    protected void showLoading(int code, String msg){
+        /*loadingDiaog.setProgressStyle(android.R.style.Widget_DeviceDefault_ProgressBar);
         loadingDiaog.setMessage("Sending Request..");
         loadingDiaog.setCancelable(false);
         loadingDiaog.setCanceledOnTouchOutside(false);
@@ -291,7 +293,43 @@ public class WelcomeActivity extends AppCompatActivity {
         }
         if(code==0){
             loadingDiaog.dismiss();
+        }*/
+
+        /*RelativeLayout welcomeLoader= findViewById(R.id.welcomeLoader);
+        TextView textView=welcomeLoader.findViewById(R.id.loaderTextView);
+        textView.setText(msg);
+
+        welcomeLoader.setAlpha(code);*/
+        if(loaderDialog != null){
+            if(loaderDialog.isShowing()){
+                loaderDialog.dismiss();
+                return;
+            }
+
         }
+
+        //2nd approach
+        View loader= getLayoutInflater().inflate(R.layout.custom_loader,null);
+        loaderDialog= new AlertDialog.Builder(this)
+                .setView(loader)
+                .create();
+
+        TextView text= loader.findViewById(R.id.loaderTextView);
+        text.setText(msg);
+
+        if(loaderDialog.getWindow()!=null){
+            loaderDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
+        loaderDialog.setCancelable(false);
+        loaderDialog.setCanceledOnTouchOutside(false);
+        if(code==1)
+            loaderDialog.show();
+        else{
+            loaderDialog.dismiss();
+            System.out.println("loader dismiss");
+        }
+
     }
 
     @Override
@@ -308,6 +346,9 @@ public class WelcomeActivity extends AppCompatActivity {
         searchListView=findViewById(R.id.searchListView);
         viewBtn=findViewById(R.id.viewBtn);
         uploadImgBtn=findViewById(R.id.uploadImg);
+
+        //stop loading
+        //showLoading(0,null);
 
         //check internet connection
         if(isConnected(WelcomeActivity.this)){
@@ -360,7 +401,7 @@ public class WelcomeActivity extends AppCompatActivity {
         imgViewer=new Intent(getApplicationContext(),ImageViewerActivity.class);
 
         //loading dialog
-        loadingDiaog=new ProgressDialog(WelcomeActivity.this);
+        //loadingDiaog=new ProgressDialog(WelcomeActivity.this);
 
         //getting current user display name
         if(user!=null)
@@ -409,6 +450,7 @@ public class WelcomeActivity extends AppCompatActivity {
                         @Override
                         public void onClick(View view) {
                             if (linkedName.isEmpty()) {
+                                searchNameEditText.setText(null);
                                 searchNameEditText.setVisibility(View.VISIBLE);
                                 request.setVisibility(View.VISIBLE);
                                 searchListView.setVisibility(View.VISIBLE);
@@ -495,6 +537,9 @@ public class WelcomeActivity extends AppCompatActivity {
                 Toast.makeText(WelcomeActivity.this,"Link Request Accepted by "+linkedName,Toast.LENGTH_SHORT).show();
                 return true;
             }
+            case R.id.reload:{
+                recreate();
+            }
             default: return super.onOptionsItemSelected(item);
         }
     }
@@ -504,7 +549,7 @@ public class WelcomeActivity extends AppCompatActivity {
         AlertDialog dialog = new AlertDialog.Builder(context)
                 .setTitle("Confirm Sign Out")
                 .setMessage("Do you want to sign out?")
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         mAuth.signOut();
@@ -513,12 +558,8 @@ public class WelcomeActivity extends AppCompatActivity {
                         finish();
                     }
                 })
-                .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                    }
-                })
+                .setNegativeButton("NO", null)
+                .setNeutralButton("CANCEL",null)
                 .show();
 
         dialog.setCanceledOnTouchOutside(false);
@@ -591,13 +632,13 @@ public class WelcomeActivity extends AppCompatActivity {
         final String getNameFromSearch=searchNameEditText.getText().toString();//get text from searchEditText
         isAlreadyLinked();
         //start loading
-        showLoading(1);
+        showLoading(1,"Sending Request...");
 
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 System.out.println("before calling method---"+alreadylinked);
-                showLoading(0);
+                showLoading(0,null);
                 //first check if that person is already linked or requested
                 if( alreadylinked ){
                     System.out.println("in send request---"+alreadylinked);
@@ -858,6 +899,5 @@ public class WelcomeActivity extends AppCompatActivity {
         }
 
     }
-
 
 }

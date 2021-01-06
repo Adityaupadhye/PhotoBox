@@ -13,9 +13,20 @@
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:background="@color/backgroundAll"
+        android:paddingBottom="20dp"
         tools:context=".WelcomeActivity"
-        tools:menu="@menu/menu"
-        android:paddingBottom="20dp">
+        tools:menu="@menu/menu">
+
+<!--        <include
+            android:id="@+id/welcomeLoader"
+            layout="@layout/custom_loader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />-->
 
         <Button
             android:id="@+id/viewBtn"
@@ -23,6 +34,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="70dp"
             android:background="@drawable/login_button"
+            android:elevation="5dp"
             android:onClick="viewer"
             android:text="View Images"
             android:textAllCaps="false"
@@ -31,9 +43,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/showLikedPerson"
-            android:elevation="5dp"
-            />
+            app:layout_constraintTop_toBottomOf="@+id/showLikedPerson" />
 
         <Button
             android:id="@+id/uploadImg"
@@ -41,12 +51,12 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="55dp"
             android:background="@drawable/login_button"
+            android:elevation="5dp"
             android:onClick="selecter"
             android:text="Upload Images"
             android:textAllCaps="false"
             android:textColor="@color/backgroundAll"
             android:textSize="20sp"
-            android:elevation="5dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
@@ -57,18 +67,17 @@
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:background="@color/yellow"
+            android:ellipsize="end"
             android:gravity="center_vertical"
+            android:maxLines="1"
+            android:nestedScrollingEnabled="true"
             android:padding="10dp"
+            android:scrollHorizontally="true"
             android:textColor="@android:color/black"
             android:textSize="20sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:nestedScrollingEnabled="true"
-            android:scrollHorizontally="true"
-            android:ellipsize="end"
-            android:maxLines="1"
-            />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/linkTxt"
@@ -110,12 +119,12 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="25dp"
             android:background="@drawable/login_button"
+            android:elevation="5dp"
             android:onClick="linkRequest"
             android:text="Send Request"
             android:textAllCaps="false"
             android:textColor="@color/backgroundAll"
             android:textSize="20sp"
-            android:elevation="5dp"
             app:layout_constraintBottom_toTopOf="@+id/searchListView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.497"
@@ -128,13 +137,14 @@
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
+            android:background="@drawable/custom_backgrnd"
+            android:nestedScrollingEnabled="true"
+            android:scrollbars="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            android:background="@drawable/custom_backgrnd"
             tools:ignore="NestedScrolling"
-            android:scrollbars="vertical"
-            android:nestedScrollingEnabled="true"/>
+            android:visibility="gone"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

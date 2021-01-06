@@ -22,6 +22,11 @@
         android:icon="@drawable/ic_outline_notifications_24"
         app:showAsAction="always"
         />
-
+    <item
+        android:id="@+id/reload"
+        android:title="Reload"
+        android:icon="@drawable/ic_baseline_refresh_24"
+        app:showAsAction="ifRoom"
+        />
 
 </menu>

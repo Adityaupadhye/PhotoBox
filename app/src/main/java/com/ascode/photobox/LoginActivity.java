@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -46,7 +47,7 @@ public class LoginActivity extends AppCompatActivity {
     Intent welcome,sign;
     private GoogleSignInClient mGoogleSignInClient;
     final static int RC_SIGN_IN=2;
-    ProgressDialog load; //to show loading
+    //ProgressDialog load; //to show loading
     DatabaseReference userDB;
 
     //Login button code
@@ -229,14 +230,19 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     protected void loading(int code){
-        load.setProgressStyle(android.R.style.Widget_DeviceDefault_ProgressBar);
+        /*load.setProgressStyle(android.R.style.Widget_DeviceDefault_ProgressBar);
         load.setMessage("Signing In please wait..");
         load.setCancelable(false);
         load.setCanceledOnTouchOutside(false);
         if(code==1)
             load.show();
         else if(code == 0)
-            load.dismiss();
+            load.dismiss();*/
+        RelativeLayout login_loader= findViewById(R.id.login_loader);
+        TextView loaderText=login_loader.findViewById(R.id.loaderTextView);
+        loaderText.setText(R.string.singingIn);
+
+        login_loader.setAlpha(code);
     }
 
     @Override
@@ -274,7 +280,8 @@ public class LoginActivity extends AppCompatActivity {
         sign=new Intent(getApplicationContext(),signUp_Activity.class);
 
         //progress dialog
-        load=new ProgressDialog(LoginActivity.this);
+        //load=new ProgressDialog(LoginActivity.this);
+        loading(0);
 
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.

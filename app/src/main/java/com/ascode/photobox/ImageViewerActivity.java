@@ -163,7 +163,7 @@ public class ImageViewerActivity extends AppCompatActivity {
         //intents
         imgSelecter = new Intent(getApplicationContext(), ImageSelectorActivity.class);
         welcome = new Intent(getApplicationContext(), WelcomeActivity.class);
-        gallery = new Intent(getApplicationContext(), GalleryActivity.class);
+        //gallery = new Intent(getApplicationContext(), GalleryActivity.class);
 
         //databaseRef
         linkedUsersRef = FirebaseDatabase.getInstance().getReference().child("linkedUsers");
@@ -290,5 +290,11 @@ public class ImageViewerActivity extends AppCompatActivity {
         gallery.putExtra("subFolder",selectedSubFolder);
         startActivity(gallery);
         overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
+    }
+
+    @Override
+    public void recreate() {
+        super.recreate();
+
     }
 }
