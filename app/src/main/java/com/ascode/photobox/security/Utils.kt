@@ -1,19 +1,10 @@
 package com.ascode.photobox.security
 
-import android.app.AlertDialog
-import android.content.Context
-import android.content.DialogInterface
-import android.view.View
-import android.widget.Toast
-import com.ascode.photobox.ImageViewerActivity
-import com.ascode.photobox.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import com.google.firebase.storage.FirebaseStorage
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 import kotlin.concurrent.schedule
 
 class Utils: ChildEventListener {

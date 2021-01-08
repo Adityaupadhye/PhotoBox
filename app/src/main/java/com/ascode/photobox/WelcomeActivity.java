@@ -1,6 +1,5 @@
 package com.ascode.photobox;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -23,7 +22,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,6 +31,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.ascode.photobox.models.LinkModel;
 import com.ascode.photobox.models.User;
 import com.ascode.photobox.models.UserModel;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -66,6 +65,7 @@ public class WelcomeActivity extends AppCompatActivity {
     Button request;
     ArrayList<String> nameArrayList=new ArrayList<>();
     ArrayList<String> nameArrayListClone=new ArrayList<>();
+    ArrayList<User> allUsers=new ArrayList<>();
     ArrayAdapter<String> nameArrayAdapter;
     ListView searchListView;
     protected HashMap<String,String> userMap=new HashMap<>();//map to store username and email---name=email
@@ -75,7 +75,7 @@ public class WelcomeActivity extends AppCompatActivity {
     boolean checkMes=false;
     String fromName,fromEmail;
     Button viewBtn,uploadImgBtn;
-    boolean alreadylinked=false;// to check if the person is already linked to someone else
+    boolean alreadylinked=false,linkedFolderCreated=false;// to check if the person is already linked to someone else
     //ProgressDialog loadingDiaog;
     AlertDialog loaderDialog;
     private final String error="To View or Upload Images you have to link to a person";
@@ -380,11 +380,11 @@ public class WelcomeActivity extends AppCompatActivity {
         }
 
         //for testing
-        final ArrayList<User> users= new UserModel().getAllUsers();
+        allUsers= new UserModel().getAllUsers();
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                System.out.println("user list "+users);
+                System.out.println("user list "+allUsers);
             }
         },3000);
 
@@ -539,6 +539,15 @@ public class WelcomeActivity extends AppCompatActivity {
             }
             case R.id.reload:{
                 recreate();
+                return true;
+            }
+            case R.id.unlink:{
+                if(!linkedName.isEmpty())
+                    showUnlinkDialog(WelcomeActivity.this);
+                else{
+                    Toast.makeText(this,"You are not linked to anyone",Toast.LENGTH_SHORT).show();
+                }
+                return true;
             }
             default: return super.onOptionsItemSelected(item);
         }
@@ -723,7 +732,9 @@ public class WelcomeActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
 
-                        FirebaseDatabase.getInstance().getReference().child("linkedUsers").child(myName+"AND"+fromName).setValue("linked");//add a new DB linkedUsers with myNameANDLinkedName
+                        if(!linkedFolderCreated)
+                            FirebaseDatabase.getInstance().getReference().child("linkedUsers").child(myName+"AND"+fromName).setValue("linked");//add a new DB linkedUsers with myNameANDLinkedName
+
                         userRef.child(user.getUid()).child("linkedTo").setValue(fromName);//add to my DB that i am linked to fromName
                         userRef.child(Objects.requireNonNull(email_uidMap.get(fromEmail))).child("linkedTo").setValue(myName);//also write in fromName's DB that he/she is linked to me
                         System.out.println("added to DB");//to check if it worked
@@ -863,7 +874,6 @@ public class WelcomeActivity extends AppCompatActivity {
                     fromEmail=linkMap.get("RequestFromEmail");
                     System.out.println("fromName="+fromName+"\tfromEmail="+fromEmail);
                 }
-
             }
 
             @Override
@@ -900,4 +910,74 @@ public class WelcomeActivity extends AppCompatActivity {
 
     }
 
+    //to show unlink dialog
+    private void showUnlinkDialog(Context context){
+
+        String linkuid = null;
+        Log.d("unlink", allUsers.toString());
+        Log.d("unlink", "linkedName="+linkedName);
+
+        for(User user: allUsers){
+            if(user.getDisplayName().equals(linkedName)){
+                linkuid=user.getUid();
+            }
+        }
+
+        final String finalLinkuid = linkuid;
+        Log.d("unlink", finalLinkuid+"--"+linkuid);
+        AlertDialog unlinkDialog= new AlertDialog.Builder(context)
+                .setTitle("Confirm Unlink")
+                .setMessage("Are you sure you want to delete link with "+linkedName+
+                        "\nBoth persons will not be able to see your photos" +
+                        "\nTo view your photos you need to link again")
+                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.d("unlink","myuid="+user.getUid()+"\n" +
+                                "linkPerson uid="+ finalLinkuid);
+                        LinkModel.Companion.unlink(user.getUid(),finalLinkuid);
+
+
+                    }
+                })
+                .setNegativeButton("NO",null)
+                .setNeutralButton("CANCEL",null)
+                .show();
+        unlinkDialog.setCanceledOnTouchOutside(false);
+        unlinkDialog.setCancelable(false);
+    }
+
+    //to check if my linkedfolder is created
+    private void isMyLinkedFolderCreated(){
+        FirebaseDatabase.getInstance().getReference().child("linkedUsers")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        for(DataSnapshot data : snapshot.getChildren()){
+                            //Log.d("links", data.getKey());
+                            String[] split=data.getKey().split("AND");
+                            if(split[0].equals(myName) || split[1].equals(myName)){
+                                Log.d("links", data.getKey());
+                                linkedFolderCreated=true;
+                            }
+                            /*if(data.getKey().contains(myName)){
+                                Log.d("links", data.getKey());
+                                linkedFolderCreated=true;
+                            }*/
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        isMyLinkedFolderCreated();
+    }
 }

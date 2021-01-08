@@ -28,5 +28,11 @@
         android:icon="@drawable/ic_baseline_refresh_24"
         app:showAsAction="ifRoom"
         />
+    <item
+        android:id="@+id/unlink"
+        android:title="Unlink this person"
+        android:icon="@drawable/ic_baseline_link_off_24"
+        app:showAsAction="never"
+        />
 
 </menu>
